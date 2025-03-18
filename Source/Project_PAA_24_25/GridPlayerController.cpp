@@ -3,10 +3,13 @@
 
 #include "GridPlayerController.h"
 #include "UnitBase.h"
+#include "Brawler.h"
+#include "Sniper.h"
 #include "CellActor.h"
+#include "UnitInfoWidget.h"
 #include "TurnBasedGameMode.h"
 #include "Engine/World.h"
-//#include "GameFramework/Actor.h"
+#include "GameFramework/Actor.h"
 #include "Kismet/GameplayStatics.h"
 
 AGridPlayerController::AGridPlayerController()
@@ -17,6 +20,18 @@ AGridPlayerController::AGridPlayerController()
 void AGridPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+	//UE_LOG(LogTemp, Warning, TEXT("Player controller initialized"));
+
+	if (UnitInfoWidgetClass)
+	{
+		UnitInfoWidget = CreateWidget<UUnitInfoWidget>(GetWorld(), UnitInfoWidgetClass);
+		if (UnitInfoWidget)
+		{
+			UnitInfoWidget->AddToViewport();
+			UnitInfoWidget->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}
+
 }
 
 void AGridPlayerController::SetupInputComponent()
@@ -25,35 +40,63 @@ void AGridPlayerController::SetupInputComponent()
 
 	InputComponent->BindAction("SelectUnit", IE_Pressed, this, &AGridPlayerController::HandleSelectUnit);
 	InputComponent->BindAction("MoveUnit", IE_Pressed, this, &AGridPlayerController::HandleMoveUnit);
+	InputComponent->BindAction("AttackUnit", IE_Pressed, this, &AGridPlayerController::HandleAttackUnit);
 }
 
 void AGridPlayerController::HandleSelectUnit()
 {
-	
-	ATurnBasedGameMode* GameMode = Cast<ATurnBasedGameMode>(GetWorld()->GetAuthGameMode());
-	if (GameMode && GameMode->CurrentTurn != ETurnState::PlayerTurn)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Not player turn"));
-		return;
-	}
-
 	FHitResult HitResult;
 	GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, false, HitResult);
 
 	if (HitResult.bBlockingHit)
 	{
-		AUnitBase* HitUnit = Cast<AUnitBase>(HitResult.GetActor());
-		if (IsValid(HitUnit))
 		{
-			ClearMovementRange();
+			UE_LOG(LogTemp, Warning, TEXT("Hit actor: %s"), *HitResult.GetActor()->GetName());
+			UE_LOG(LogTemp, Warning, TEXT("Collision channel: %d"), HitResult.Component->GetCollisionObjectType());
+		}
+
+		AUnitBase* HitUnit = Cast<AUnitBase>(HitResult.GetActor());
+		if (IsValid(HitUnit) && HitUnit->bIsPlayerControlled)
+		{
 			SelectedUnit = HitUnit;
+			ClearMovementRange();
 			UE_LOG(LogTemp, Warning, TEXT("Selected unit: %s"), *HitUnit->GetName());
 			ShowMovementRange();
+
+			if (SelectedUnit->UnitInfoWidget)
+			{
+				SelectedUnit->UnitInfoWidget->RemoveFromParent();
+				SelectedUnit->UnitInfoWidget = nullptr;
+			}
+
+			if (SelectedUnit->UnitInfoWidgetClass)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Widget class is valid: %s"), *HitUnit->UnitInfoWidgetClass->GetName());
+				SelectedUnit->UnitInfoWidget = CreateWidget<UUnitInfoWidget>(this, SelectedUnit->UnitInfoWidgetClass);
+				if (SelectedUnit->UnitInfoWidget)
+				{
+					SelectedUnit->UnitInfoWidget->SetUnitInfo(SelectedUnit->GetName(), SelectedUnit->CurrentDamage, SelectedUnit->Health);
+					SelectedUnit->UnitInfoWidget->AddToViewport();
+				}
+			}
+			if (IsValid(SelectedUnit) && SelectedUnit->UnitInfoWidget)
+			{
+				SelectedUnit->UnitInfoWidget->SetVisibility(ESlateVisibility::Visible);
+				ShowUnitInfo();
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("No unit selected for widget"));
+			}
 		}
 		else
 		{
 				UE_LOG(LogTemp, Warning, TEXT("Cannot select AI unit"));
 		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No blocking hit"));
 	}
 }
 
@@ -76,21 +119,23 @@ void AGridPlayerController::ShowMovementRange()
 
 					if (CellHit.bBlockingHit)
 					{
-						UE_LOG(LogTemp, Warning, TEXT("Raycast hit: %s"), CellHit.GetActor() ? *CellHit.GetActor()->GetName() : TEXT("Invalid Actor"));
-
 						ACellActor* Cell = Cast<ACellActor>(CellHit.GetActor());
-						if (IsValid(Cell))
+						if (Cell)
 						{
 							Cell->HighlightCell(true);
 						}
 					}
-					else
+					else 
 					{
-						UE_LOG(LogTemp, Warning, TEXT("Raycast Missed"));
+						UE_LOG(LogTemp, Warning, TEXT("Raycast hit something else"));
 					}
 				}
 			}
 		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No unit selected"));
 	}
 }
 
@@ -102,7 +147,7 @@ void AGridPlayerController::ClearMovementRange()
 	for (AActor* Actor : FoundActors)
 	{
 		ACellActor* Cell = Cast<ACellActor>(Actor);
-		if (Cell)
+		if (IsValid(Cell))
 		{
 			Cell->ResetToOriginalColor();
 		}
@@ -113,6 +158,63 @@ void AGridPlayerController::HandleMoveUnit()
 {
 	if (IsValid(SelectedUnit))
 	{
+		if (!SelectedUnit->bIsPlayerControlled)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Cannot move AI unit"));
+			return;
+		}
+
+		FHitResult HitResult;
+		GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, false, HitResult);
+
+		if (HitResult.bBlockingHit)
+		{
+			ACellActor* Cell = Cast<ACellActor>(HitResult.GetActor());
+			if (IsValid(Cell))
+			{
+				FVector TargetLocation = HitResult.Location;
+				TargetLocation.Z = SelectedUnit->GetActorLocation().Z;
+
+				TargetLocation.X = FMath::RoundToFloat(TargetLocation.X / 100) * 100;
+				TargetLocation.Y = FMath::RoundToFloat(TargetLocation.Y / 100) * 100;
+
+				int32 DistanceX = FMath::Abs(TargetLocation.X - SelectedUnit->GetActorLocation().X) / 100;
+				int32 DistanceY = FMath::Abs(TargetLocation.Y - SelectedUnit->GetActorLocation().Y) / 100;
+
+				UE_LOG(LogTemp, Warning, TEXT("Trying to move to: X=%f Y=%f"), TargetLocation.X, TargetLocation.Y);
+				UE_LOG(LogTemp, Warning, TEXT("Distance calculated: X=%d Y=%d"), DistanceX, DistanceY);
+
+				if (DistanceX + DistanceY <= SelectedUnit->MaxMovement)
+				{
+					SelectedUnit->SetActorLocation(TargetLocation);
+					SelectedUnit = nullptr;
+					ClearMovementRange();
+
+					if (GetWorld()->GetAuthGameMode())
+					{
+						ATurnBasedGameMode* GameMode = Cast<ATurnBasedGameMode>(GetWorld()->GetAuthGameMode());
+						if (GameMode) GameMode->EndTurn();
+
+						UE_LOG(LogTemp, Warning, TEXT("Turn ended"));
+					}
+				}
+				else
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Movement denied: out of range"));
+				}
+			}
+		}
+		else 
+		{
+			UE_LOG(LogTemp, Warning, TEXT("No valid target"));
+		}
+	}
+}
+
+void AGridPlayerController::HandleAttackUnit()
+{
+	if (IsValid(SelectedUnit))
+	{
 		ATurnBasedGameMode* CurrentGameMode = Cast<ATurnBasedGameMode>(GetWorld()->GetAuthGameMode());
 		if (CurrentGameMode && CurrentGameMode->CurrentTurn != ETurnState::PlayerTurn)
 		{
@@ -120,54 +222,82 @@ void AGridPlayerController::HandleMoveUnit()
 			return;
 		}
 
-		if (SelectedUnit)
+		FHitResult HitResult;
+		GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, false, HitResult);
+
+		if (!HitResult.GetActor())
 		{
-			if (!SelectedUnit->bIsPlayerControlled)
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Cannot move AI unit"));
-				return;
-			}
+			UE_LOG(LogTemp, Warning, TEXT("Invalid hit result, no actor found"));
+			return;
+		}
+		
 
-			FHitResult HitResult;
-			GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, false, HitResult);
+		if (IsValid(HitResult.GetActor()) && HitResult.GetActor()->IsA(AUnitBase::StaticClass()))
+		{
+			AUnitBase* TargetUnit = Cast<AUnitBase>(HitResult.GetActor());
 
-			if (HitResult.bBlockingHit)
+			if (IsValid(TargetUnit) && TargetUnit != SelectedUnit && !TargetUnit->bIsPlayerControlled)
 			{
-				ACellActor* Cell = Cast<ACellActor>(HitResult.GetActor());
-				if (Cell)
+				int32 DistanceX = FMath::Abs(TargetUnit->GetActorLocation().X - SelectedUnit->GetActorLocation().X) / 100;
+				int32 DistanceY = FMath::Abs(TargetUnit->GetActorLocation().Y - SelectedUnit->GetActorLocation().Y) / 100;
+
+				if (DistanceX + DistanceY <= SelectedUnit->AttackRange)
 				{
-					FVector TargetLocation = HitResult.Location;
-					TargetLocation.Z = SelectedUnit->GetActorLocation().Z;
+					int32 CurrentDamage = FMath::RandRange(SelectedUnit->DamageMin, SelectedUnit->DamageMax);
+					TargetUnit->ApplyDamage(CurrentDamage);
 
-					int32 DistanceX = FMath::Abs(TargetLocation.X - SelectedUnit->GetActorLocation().X) / 100;
-					int32 DistanceY = FMath::Abs(TargetLocation.Y - SelectedUnit->GetActorLocation().Y) / 100;
-
-					if (TargetLocation.X < 0 || TargetLocation.X >= 2500 || TargetLocation.Y < 0 || TargetLocation.Y >= 2500)
+					if (SelectedUnit->UnitInfoWidget)
 					{
-						UE_LOG(LogTemp, Warning, TEXT("Movement denied: out of grid"));
-						return;
+						SelectedUnit->UnitInfoWidget->SetUnitInfo(SelectedUnit->GetName(), CurrentDamage, SelectedUnit->Health);
 					}
 
-					if (DistanceX + DistanceY <= SelectedUnit->MaxMovement)
+					UE_LOG(LogTemp, Warning, TEXT("Attacking %s for %d damage"), *TargetUnit->GetName(), CurrentDamage);
+
+					ATurnBasedGameMode* GameMode = Cast<ATurnBasedGameMode>(GetWorld()->GetAuthGameMode());
+					if (GameMode)
 					{
-						SelectedUnit->SetActorLocation(TargetLocation);
-						SelectedUnit = nullptr;
-						ClearMovementRange();
-
-						if (GetWorld()->GetAuthGameMode())
-						{
-							ATurnBasedGameMode* GameMode = Cast<ATurnBasedGameMode>(GetWorld()->GetAuthGameMode());
-							if (GameMode) GameMode->EndTurn();
-
-							UE_LOG(LogTemp, Warning, TEXT("Turn ended"));
-						}
+						CurrentGameMode->EndTurn();
 					}
 					else
 					{
-						UE_LOG(LogTemp, Warning, TEXT("Movement denied: out of range"));
+						UE_LOG(LogTemp, Warning, TEXT("Game mode not found"))
 					}
 				}
+				else
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Attack denied: target out of range"));
+				}
 			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Cannot attack friendly unit"));
+			}
+
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Invalid hit result"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No unit selected"));
+	}
+}
+
+void AGridPlayerController::ShowUnitInfo()
+{
+	if (UnitInfoWidgetClass)
+	{
+		if (!UnitInfoWidget)
+		{
+			UnitInfoWidget = CreateWidget<UUnitInfoWidget>(this, UnitInfoWidgetClass);
+		}
+
+		if (UnitInfoWidget)
+		{
+			//UnitInfoWidget->SetUnitInfo(TEXT("Unit Name"), 100, 100);
+			UnitInfoWidget->AddToViewport();
 		}
 	}
 }

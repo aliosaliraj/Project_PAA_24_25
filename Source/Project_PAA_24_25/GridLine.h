@@ -23,15 +23,20 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	void GenerateGrid();
+
+private:
+	void CreateGridWithObstacles();
+	void SpawnObstaclesAtLocation(const FVector& Location);
+
 	UPROPERTY(EditAnywhere, Category = "Gridline")
 	int32 GridSize = 25;
 
 	UPROPERTY(EditAnywhere, Category = "Gridline")
 	float CellSize = 100.0f;
 
-	void GenerateGrid();
-	void PlaceUnits();
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class AObstacle> ObstacleClass;
 
-private: 
 	TArray<class AActor*> GridCells;
 };

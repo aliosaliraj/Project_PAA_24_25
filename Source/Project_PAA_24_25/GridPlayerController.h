@@ -8,6 +8,7 @@
 #include "GridPlayerController.generated.h"
 
 class AUnitBase;
+//class UUnitInfoWidget;
 
 UCLASS()
 class PROJECT_PAA_24_25_API AGridPlayerController : public APlayerController
@@ -21,12 +22,23 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
 
-private:
-	AUnitBase* SelectedUnit;
-
 	void HandleSelectUnit();
 	void HandleMoveUnit();
 
 	void ShowMovementRange();
 	void ClearMovementRange();
+
+	UFUNCTION()
+	void HandleAttackUnit();
+
+	AUnitBase* SelectedUnit;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+	TSubclassOf<class UUnitInfoWidget> UnitInfoWidgetClass;
+
+	UPROPERTY()
+	UUnitInfoWidget* UnitInfoWidget;
+
+	UFUNCTION(BlueprintCallable)
+	void ShowUnitInfo();
 };

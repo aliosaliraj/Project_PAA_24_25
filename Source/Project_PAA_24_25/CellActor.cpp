@@ -33,8 +33,8 @@ ACellActor::ACellActor()
 	}
 
 	CellMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	CellMesh->SetCollisionObjectType(ECollisionChannel::ECC_WorldStatic);
-	CellMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
+	CellMesh->SetCollisionObjectType(ECC_Pawn);
+	CellMesh->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 }
 
 // Called when the game starts or when spawned
@@ -59,12 +59,16 @@ void ACellActor::SetCellColor(FColor NewColor)
 	UMaterialInstanceDynamic* DynamicMaterial = CellMesh->CreateAndSetMaterialInstanceDynamic(0);
 	if (DynamicMaterial)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Material Applied, setting color..."))
+		//UE_LOG(LogTemp, Warning, TEXT("Material Applied, setting color..."))
 		DynamicMaterial->SetVectorParameterValue(FName("BaseColor"), FLinearColor(NewColor));
 	}
 	if (IsValid(CellMesh))
 	{
 		CellMesh->SetVectorParameterValueOnMaterials("Base Color", FVector(NewColor));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("CellMesh1 is not valid"));
 	}
 }
 
@@ -76,6 +80,10 @@ void ACellActor::HighlightCell(bool bHighlight)
 		FLinearColor NewColor = bHighlight ? FLinearColor::Green : FLinearColor::White;
 		CellMesh->SetVectorParameterValueOnMaterials("Base Color", FVector(NewColor));
 	}
+	else 
+	{
+		UE_LOG(LogTemp, Warning, TEXT("CellMesh2 is not valid"));
+	}
 }
 
 void ACellActor::ResetToOriginalColor()
@@ -84,5 +92,9 @@ void ACellActor::ResetToOriginalColor()
 	if (IsValid(CellMesh))
 	{
 		CellMesh->SetVectorParameterValueOnMaterials("Base Color", FVector(OriginalColor));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("CellMesh3 is not valid"));
 	}
 }

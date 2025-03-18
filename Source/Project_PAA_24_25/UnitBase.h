@@ -3,8 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "UnitInfoWidget.h"
 #include "GameFramework/Actor.h"
 #include "UnitBase.generated.h"
+
+class UUnitInfoWidget;
 
 UCLASS()
 class PROJECT_PAA_24_25_API AUnitBase : public AActor
@@ -26,7 +29,7 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     class UStaticMeshComponent* UnitMesh;
 
-    // Variabili base dell'unità
+	// Stats Base
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
     int32 Health;
 
@@ -42,10 +45,21 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
     int32 DamageMax;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
+    int32 CurrentDamage;
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Control")
     bool bIsPlayerControlled;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+	TSubclassOf<class UUnitInfoWidget> UnitInfoWidgetClass;
+
+    UPROPERTY()
+    UUnitInfoWidget* UnitInfoWidget;
 
     UFUNCTION(BlueprintCallable)
     void ApplyDamage(int32 DamageAmount);
 
+	UFUNCTION(BlueprintCallable)
+	void AttackTarget(AUnitBase* Target);
 };

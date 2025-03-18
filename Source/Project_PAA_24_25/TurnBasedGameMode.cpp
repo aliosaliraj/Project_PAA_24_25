@@ -4,18 +4,28 @@
 #include "TurnBasedGameMode.h"
 #include "GridPlayerController.h"
 #include "Kismet/GameplayStatics.h"
+#include "UnitBase.h"
+#include "Sniper.h"
+#include "Brawler.h"
+//#include "Obstacle.h"
+#include "Engine/EngineTypes.h"
+#include "Components/PrimitiveComponent.h"
+#include "Engine/World.h"
+#include "CollisionQueryParams.h"
+
 
 ATurnBasedGameMode::ATurnBasedGameMode()
 {
-	//PlayerControllerClass = AGridPlayerController::StaticClass();
+	PlayerControllerClass = AGridPlayerController::StaticClass();
 	CurrentTurn = ETurnState::PlayerTurn;
+	GridSize = 25;
 }
 
 void ATurnBasedGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//SpawnUnits();
+	SpawnUnits();
 	StartPlayerTurn();
 }
 
@@ -27,8 +37,8 @@ void ATurnBasedGameMode::StartPlayerTurn()
 
 void ATurnBasedGameMode::StartEnemyTurn()
 {
-	CurrentTurn = ETurnState::EnemyTurn;
 	UE_LOG(LogTemp, Warning, TEXT("Enemy Turn Started"));
+	CurrentTurn = ETurnState::EnemyTurn;
 	
 	TArray<AActor*> FoundActors;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AUnitBase::StaticClass(), FoundActors);
@@ -87,24 +97,44 @@ void ATurnBasedGameMode::EndTurn()
 	}
 }
 
-/*void ATurnBasedGameMode::SpawnUnits()
+void ATurnBasedGameMode::SpawnUnits()
 {
 	if (GetWorld())
 	{
-		FVector PlayerLocation = FVector(100, 100, 0);
-		AUnitBase* PlayerUnit = GetWorld()->SpawnActor<AUnitBase>(AUnitBase::StaticClass(), PlayerLocation, FRotator::ZeroRotator);
-		if (PlayerUnit)
+		if (PlayerUnitClass)
 		{
-			PlayerUnit->bIsPlayerControlled = true;
-			UE_LOG(LogTemp, Warning, TEXT("Player unit spawned at %s"), *PlayerLocation.ToString());
+			FVector PlayerLocation = FVector(100, 100, 50);
+			AUnitBase* PlayerUnit = GetWorld()->SpawnActor<AUnitBase>(PlayerUnitClass, PlayerLocation, FRotator::ZeroRotator);
+			if (PlayerUnit)
+			{
+				PlayerUnit->bIsPlayerControlled = true;
+				UE_LOG(LogTemp, Warning, TEXT("Player unit spawned at %s"), *PlayerLocation.ToString());
+				UE_LOG(LogTemp, Warning, TEXT("Player unit is controlled by: %s"), PlayerUnit->bIsPlayerControlled ? TEXT("Player") : TEXT("AI"));
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Failed to spawn player unit"));
+			}
 		}
 
-		FVector EnemyLocation = FVector(500, 500, 0);
-		AUnitBase* EnemyUnit = GetWorld()->SpawnActor<AUnitBase>(AUnitBase::StaticClass(), EnemyLocation, FRotator::ZeroRotator);
-		if (EnemyUnit)
+		if (EnemyUnitClass)
 		{
-			EnemyUnit->bIsPlayerControlled = false;
-			UE_LOG(LogTemp, Warning, TEXT("Enemy unit spawned at %s"), *EnemyLocation.ToString());
+			FVector EnemyLocation = FVector(500, 500, 50);
+			AUnitBase* EnemyUnit = GetWorld()->SpawnActor<AUnitBase>(EnemyUnitClass, EnemyLocation, FRotator::ZeroRotator);
+			if (EnemyUnit)
+			{
+				EnemyUnit->bIsPlayerControlled = false;
+				UE_LOG(LogTemp, Warning, TEXT("Enemy unit spawned at %s"), *EnemyLocation.ToString());
+				UE_LOG(LogTemp, Warning, TEXT("Enemy unit is controlled by: %s"), EnemyUnit->bIsPlayerControlled ? TEXT("Player") : TEXT("AI"));
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Failed to spawn enemy unit"));
+			}
 		}
 	}
-}*/
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No world found"));
+	}
+}

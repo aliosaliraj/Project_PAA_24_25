@@ -2,6 +2,9 @@
 
 #pragma once
 
+#include "UnitBase.h"
+#include "Sniper.h"
+#include "Brawler.h"
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
 #include "TurnBasedGameMode.generated.h"
@@ -25,11 +28,27 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(BlueprintReadOnly)
 	ETurnState CurrentTurn;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid")
+	int32 GridSize = 25;
+
+	UPROPERTY(EditAnywhere, Category = "Units")
+	TSubclassOf<AUnitBase> PlayerUnitClass;
+
+	UPROPERTY(EditAnywhere, Category = "Units")
+	TSubclassOf<AUnitBase> EnemyUnitClass;
+
+	UFUNCTION(BlueprintCallable)
 	void StartPlayerTurn();
+
+	UFUNCTION(BlueprintCallable)
 	void StartEnemyTurn();
+
+	UFUNCTION(BlueprintCallable)
 	void EndTurn();
-	//void SpawnUnits();
+
+	UFUNCTION(BlueprintCallable)
+	void SpawnUnits();
 };
