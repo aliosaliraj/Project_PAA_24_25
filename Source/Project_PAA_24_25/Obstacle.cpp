@@ -9,19 +9,26 @@ AObstacle::AObstacle()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
 
-	UStaticMeshComponent* MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ObstacleMesh"));
+	ObstacleMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ObstacleMesh"));
 	RootComponent = ObstacleMesh;
 
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> ObstacleMeshAsset(TEXT("/Game/Geometry/Meshes/1M_Cube.1M_Cube"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> ObstacleMeshAsset(TEXT("/Engine/BasicShapes/Cube1.Cube1"));
+
 	if (ObstacleMeshAsset.Succeeded())
 	{
 		ObstacleMesh->SetStaticMesh(ObstacleMeshAsset.Object);
+		ObstacleMesh->SetWorldScale3D(FVector(1.0f, 1.0f, 0.1f));
+
+		ObstacleMesh->MarkRenderStateDirty();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to find Obstacle Mesh"));
 	}
 
 	ObstacleMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	ObstacleMesh->SetCollisionObjectType(ECC_WorldStatic);
 	ObstacleMesh->SetCollisionResponseToAllChannels(ECR_Block);
-
 }
 
 // Called when the game starts or when spawned
@@ -35,6 +42,5 @@ void AObstacle::BeginPlay()
 void AObstacle::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 

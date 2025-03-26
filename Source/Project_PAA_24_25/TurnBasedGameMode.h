@@ -7,6 +7,7 @@
 #include "Brawler.h"
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "Obstacle.h"
 #include "TurnBasedGameMode.generated.h"
 
 UENUM(BlueprintType)
@@ -14,6 +15,24 @@ enum class ETurnState : uint8
 {
 	PlayerTurn,
 	EnemyTurn
+};
+
+USTRUCT()
+struct FPathNode
+{
+	GENERATED_BODY()
+
+	FVector Position;
+	float GCost;
+	float HCost;
+	float FCost;
+	FPathNode* Parent;
+
+	FPathNode()
+		: Position(FVector::ZeroVector), GCost(0), HCost(0), FCost(0), Parent(nullptr) {}
+
+	FPathNode(FVector InPosition)
+		: Position(InPosition), GCost(0), HCost(0), FCost(0), Parent(nullptr) {}
 };
 
 UCLASS()
@@ -26,6 +45,9 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+
+	bool IsValidMove(FVector Position, FVector TargetLocation, AUnitBase* Unit);
+	FTimerHandle TimerHandle;
 
 public:
 	UPROPERTY(BlueprintReadOnly)
@@ -51,4 +73,15 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SpawnUnits();
+
+	UFUNCTION(BlueprintCallable)
+	TArray<FVector> FindPath(AUnitBase* Unit, FVector StartLocation, FVector TargetLocation);
+
+private:
+	TArray<FVector> Path;
+	int32 CurrentStepIndex;
+	FTimerHandle StepMoveTimer;
+	AUnitBase* MovingUnit;
+
+	void MoveStepByStep();
 };

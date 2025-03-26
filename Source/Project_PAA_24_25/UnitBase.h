@@ -9,6 +9,13 @@
 
 class UUnitInfoWidget;
 
+UENUM(BlueprintType)
+enum class EUnitType : uint8
+{
+    Sniper UMETA(DisplayName = "Sniper"),
+    Brawler UMETA(DisplayName = "Brawler")
+};
+
 UCLASS()
 class PROJECT_PAA_24_25_API AUnitBase : public AActor
 {
@@ -21,6 +28,15 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material")
+    UMaterial* SniperMat;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Material")
+    UMaterial* BrawlerMat;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Unit")
+    EUnitType UnitType;
 
 public:	
 	// Called every frame

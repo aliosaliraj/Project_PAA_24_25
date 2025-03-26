@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "StrategyCamera.h"
 #include "UnitBase.h"
 #include "GameFramework/PlayerController.h"
 #include "GridPlayerController.generated.h"
@@ -32,6 +33,9 @@ protected:
 	void HandleAttackUnit();
 
 	AUnitBase* SelectedUnit;
+
+	UPROPERTY()
+	AStrategyCamera* StrategyCamera;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<class UUnitInfoWidget> UnitInfoWidgetClass;

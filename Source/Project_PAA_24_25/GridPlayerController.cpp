@@ -8,6 +8,8 @@
 #include "CellActor.h"
 #include "UnitInfoWidget.h"
 #include "TurnBasedGameMode.h"
+#include "StrategyCamera.h"
+#include "EngineUtils.h"
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
 #include "Kismet/GameplayStatics.h"
@@ -20,18 +22,46 @@ AGridPlayerController::AGridPlayerController()
 void AGridPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
-	//UE_LOG(LogTemp, Warning, TEXT("Player controller initialized"));
-
-	if (UnitInfoWidgetClass)
+	
+	if (GetWorld())
 	{
-		UnitInfoWidget = CreateWidget<UUnitInfoWidget>(GetWorld(), UnitInfoWidgetClass);
-		if (UnitInfoWidget)
+		/*
+		for (TActorIterator<AStrategyCamera> It(GetWorld()); It; ++It)
 		{
-			UnitInfoWidget->AddToViewport();
-			UnitInfoWidget->SetVisibility(ESlateVisibility::Hidden);
+			StrategyCamera = *It;
+			break;
+		}
+
+		if (StrategyCamera)
+		{
+			// Calcolo del centro della griglia (esempio con una griglia 25x25)
+			const float GridSize = 100.0f; // Dimensione di una cella (modifica se necessario)
+			const float HalfGridSize = (25 * GridSize) / 2;
+
+			// Posiziona la camera sopra il centro della griglia
+			FVector CameraLocation = FVector(HalfGridSize, HalfGridSize, 2500.0f); // Altezza regolabile
+			FRotator CameraRotation = FRotator(-90.0f, 0.0f, 0.0f); // Angolazione regolabile
+
+			StrategyCamera->SetActorLocation(CameraLocation);
+			StrategyCamera->SetActorRotation(CameraRotation);
+
+			SetViewTargetWithBlend(StrategyCamera, 0.5f);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Camera non trovata"));
+		}*/
+
+		if (UnitInfoWidgetClass)
+		{
+			UnitInfoWidget = CreateWidget<UUnitInfoWidget>(GetWorld(), UnitInfoWidgetClass);
+			if (UnitInfoWidget)
+			{
+				UnitInfoWidget->AddToViewport();
+				UnitInfoWidget->SetVisibility(ESlateVisibility::Hidden);
+			}
 		}
 	}
-
 }
 
 void AGridPlayerController::SetupInputComponent()

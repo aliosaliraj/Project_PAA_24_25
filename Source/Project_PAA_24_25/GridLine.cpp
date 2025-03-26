@@ -9,6 +9,7 @@
 #include "Engine/EngineTypes.h"
 #include "CollisionQueryParams.h"
 #include "WorldCollision.h"
+#include "Components/PrimitiveComponent.h"
 
 // Sets default values
 AGridLine::AGridLine()
@@ -16,6 +17,11 @@ AGridLine::AGridLine()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	ObstacleClass = AObstacle::StaticClass();
+	if (!ObstacleClass)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to find Obstacle class"));
+	}
 }
 
 // Called when the game starts or when spawned
@@ -70,10 +76,11 @@ void AGridLine::CreateGridWithObstacles()
 	{
 		for (int32 y = 0; y < GridSize; y++)
 		{
-			FVector Location = FVector(x * CellSize, y * CellSize, 0);
+			if (NumObstacles <= 0) break;
 
 			if (FMath::RandRange(0, NumCells) < NumObstacles)
 			{
+				FVector Location = FVector(x * CellSize, y * CellSize, 0);
 				SpawnObstaclesAtLocation(Location);
 				--NumObstacles;
 			}
@@ -83,14 +90,12 @@ void AGridLine::CreateGridWithObstacles()
 
 void AGridLine::SpawnObstaclesAtLocation(const FVector& Location)
 {
-	TArray<FOverlapResult> OverlappingActors;
-	FCollisionQueryParams CollisionParams;
-	CollisionParams.AddIgnoredActor(this);
-
-	GetWorld()->OverlapMultiByChannel(OverlappingActors, Location, FQuat::Identity, ECC_WorldStatic, FCollisionShape::MakeBox(FVector(CellSize / 2, CellSize / 2, CellSize / 2)), CollisionParams);
-
-	if (OverlappingActors.Num() == 0)
+	if (ObstacleClass)
 	{
 		GetWorld()->SpawnActor<AObstacle>(ObstacleClass, Location, FRotator::ZeroRotator);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Obstacle class not assigned"));
 	}
 }

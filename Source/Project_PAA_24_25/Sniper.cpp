@@ -12,6 +12,11 @@ ASniper::ASniper()
 	DamageMin = 4;
 	DamageMax = 8;
 
+	if (SniperMat)
+	{
+		UnitMesh->SetMaterial(0, SniperMat);
+	}
+
 	static ConstructorHelpers::FClassFinder<UUnitInfoWidget> WidgetClass(TEXT("/Game/BlueprintClasses/UnitInfoWidget_BP.UnitInfoWidget_BP_C"));
 	if (WidgetClass.Succeeded())
 	{

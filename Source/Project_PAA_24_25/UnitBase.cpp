@@ -15,18 +15,26 @@ AUnitBase::AUnitBase()
 	UnitMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Unit Mesh"));
 	RootComponent = UnitMesh;
 
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> SphereMesh(TEXT("/Engine/BasicShapes/Sphere"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> CylinderMesh(TEXT("/Engine/BasicShapes/Cylinder"));
 
-	if (SphereMesh.Succeeded())
+	if (CylinderMesh.Succeeded())
 	{
-		UnitMesh->SetStaticMesh(SphereMesh.Object);
-		UnitMesh->SetWorldScale3D(FVector(0.5f));
+		UnitMesh->SetStaticMesh(CylinderMesh.Object);
+		UnitMesh->SetWorldScale3D(FVector(0.5f, 0.5f, 0.1f));
+
+		static ConstructorHelpers::FObjectFinder<UMaterial> SniperMaterial(TEXT("/Game/Textures/Soldier1_Mat"));
+		static ConstructorHelpers::FObjectFinder<UMaterial> BrawlerMaterial(TEXT("/Game/Textures/Soldier2_Mat"));
+
+		if (SniperMaterial.Succeeded())
+		{
+			SniperMat = SniperMaterial.Object;
+		}
+
+		if (BrawlerMaterial.Succeeded())
+		{
+			BrawlerMat = BrawlerMaterial.Object;
+		}
 	}
-	Health = 100;
-	MaxMovement = 5;
-	AttackRange = 1;
-	DamageMin = 10;
-	DamageMax = 20;
 }
 
 // Called when the game starts or when spawned
@@ -36,6 +44,14 @@ void AUnitBase::BeginPlay()
 
 	UE_LOG(LogTemp, Warning, TEXT("%s is controlled by: %s"), *GetName(), bIsPlayerControlled ? TEXT("PLAYER") : TEXT("AI"));
 
+	if (UnitType == EUnitType::Sniper && SniperMat)
+	{
+		UnitMesh->SetMaterial(0, SniperMat);
+	}
+	else if (UnitType == EUnitType::Brawler && BrawlerMat)
+	{
+		UnitMesh->SetMaterial(0, BrawlerMat);
+	}
 }
 
 // Called every frame
