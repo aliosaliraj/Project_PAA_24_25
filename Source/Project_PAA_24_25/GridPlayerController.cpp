@@ -25,7 +25,6 @@ void AGridPlayerController::BeginPlay()
 	
 	if (GetWorld())
 	{
-		/*
 		for (TActorIterator<AStrategyCamera> It(GetWorld()); It; ++It)
 		{
 			StrategyCamera = *It;
@@ -50,7 +49,7 @@ void AGridPlayerController::BeginPlay()
 		else
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Camera non trovata"));
-		}*/
+		}
 
 		if (UnitInfoWidgetClass)
 		{
@@ -282,6 +281,11 @@ void AGridPlayerController::HandleAttackUnit()
 					}
 
 					UE_LOG(LogTemp, Warning, TEXT("Attacking %s for %d damage"), *TargetUnit->GetName(), CurrentDamage);
+
+					if (SelectedUnit->UnitType == EUnitType::Sniper)
+					{
+						TargetUnit->CounterAttack(SelectedUnit);
+					}
 
 					ATurnBasedGameMode* GameMode = Cast<ATurnBasedGameMode>(GetWorld()->GetAuthGameMode());
 					if (GameMode)

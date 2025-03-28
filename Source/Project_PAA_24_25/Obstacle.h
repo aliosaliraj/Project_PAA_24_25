@@ -25,4 +25,16 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	class UStaticMeshComponent* ObstacleMesh;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Materials")
+	UMaterial* TreeMaterial;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Materials")
+	UMaterial* MountainMaterial;
+
+	// Tipo di ostacolo
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Obstacle")
+	bool bIsTree; // true = albero, false = montagna
+
+	void SetMaterial(bool bTree);
 };

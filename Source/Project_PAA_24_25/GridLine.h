@@ -28,7 +28,7 @@ public:
 
 private:
 	void CreateGridWithObstacles();
-	void SpawnObstaclesAtLocation(const FVector& Location);
+	void SpawnObstaclesAtLocation(const FVector& Location, bool bisTree);
 
 	UPROPERTY(EditAnywhere, Category = "Gridline")
 	int32 GridSize = 25;
@@ -36,8 +36,11 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Gridline")
 	float CellSize = 100.0f;
 
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<class AObstacle> ObstacleClass;
+	UPROPERTY(EditAnywhere, Category = "Obstacle")
+	TSubclassOf<AObstacle> ObstacleClass;
+
+	UPROPERTY(EditAnywhere, Category = "Obstacles")
+	float TreePercentage = 0.6f;
 
 	TArray<class AActor*> GridCells;
 };

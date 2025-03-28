@@ -70,7 +70,10 @@ void AGridLine::GenerateGrid()
 void AGridLine::CreateGridWithObstacles()
 {
 	int32 NumCells = GridSize * GridSize;
-	int32 NumObstacles = NumCells * 0.1f; //obstacles percent (10)
+	int32 NumObstacles = NumCells * 0.1f;	//obstacles percent (10)
+
+	int32 NumTrees = FMath::RoundToInt(NumObstacles * TreePercentage);
+	int32 NumMountains = NumObstacles - NumTrees;
 
 	for (int32 x = 0; x < GridSize; x++)
 	{
@@ -81,21 +84,42 @@ void AGridLine::CreateGridWithObstacles()
 			if (FMath::RandRange(0, NumCells) < NumObstacles)
 			{
 				FVector Location = FVector(x * CellSize, y * CellSize, 0);
-				SpawnObstaclesAtLocation(Location);
+
+				bool bTree = (NumTrees > 0);
+				SpawnObstaclesAtLocation(Location, bTree);
+
+				if (bTree)
+				{
+					NumTrees--;
+				}
+				else
+				{
+					NumMountains--;
+				}
+
 				--NumObstacles;
 			}
 		}
 	}
 }
 
-void AGridLine::SpawnObstaclesAtLocation(const FVector& Location)
+void AGridLine::SpawnObstaclesAtLocation(const FVector& Location, bool bIsTree)
 {
-	if (ObstacleClass)
+	if (ObstacleClass && ObstacleClass->IsChildOf(AObstacle::StaticClass()))
 	{
-		GetWorld()->SpawnActor<AObstacle>(ObstacleClass, Location, FRotator::ZeroRotator);
+		AObstacle* NewObstacle = GetWorld()->SpawnActor<AObstacle>(ObstacleClass, Location, FRotator::ZeroRotator);
+		if (NewObstacle)
+		{
+			NewObstacle->SetMaterial(bIsTree);
+			UE_LOG(LogTemp, Warning, TEXT("Spawned obstacle at %s"), *Location.ToString());
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Failed to spawn obstacle at location"));
+		}
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("Obstacle class not assigned"));
+		UE_LOG(LogTemp, Error, TEXT("Obstacle class not assigned or not child of AActor"));
 	}
 }

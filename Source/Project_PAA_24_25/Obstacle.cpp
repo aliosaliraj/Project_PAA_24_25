@@ -18,12 +18,22 @@ AObstacle::AObstacle()
 	{
 		ObstacleMesh->SetStaticMesh(ObstacleMeshAsset.Object);
 		ObstacleMesh->SetWorldScale3D(FVector(1.0f, 1.0f, 0.1f));
-
-		ObstacleMesh->MarkRenderStateDirty();
 	}
 	else
 	{
 		UE_LOG(LogTemp, Error, TEXT("Failed to find Obstacle Mesh"));
+	}
+
+	static ConstructorHelpers::FObjectFinder<UMaterial> TreeMaterialAsset(TEXT("/Game/Textures/TreeMaterial.TreeMaterial"));
+	if (TreeMaterialAsset.Succeeded())
+	{
+		TreeMaterial = TreeMaterialAsset.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UMaterial> MountainMaterialAsset(TEXT("/Game/Textures/MountainMaterial.MountainMaterial"));
+	if (MountainMaterialAsset.Succeeded())
+	{
+		MountainMaterial = MountainMaterialAsset.Object;
 	}
 
 	ObstacleMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
@@ -44,3 +54,16 @@ void AObstacle::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
+void AObstacle::SetMaterial(bool bTree)
+{
+	bIsTree = bTree;
+
+	if (bIsTree && TreeMaterial)
+	{
+		ObstacleMesh->SetMaterial(0, TreeMaterial);
+	}
+	else if (!bIsTree && MountainMaterial)
+	{
+		ObstacleMesh->SetMaterial(0, MountainMaterial);
+	}
+}
