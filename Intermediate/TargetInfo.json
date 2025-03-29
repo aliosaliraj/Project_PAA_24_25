@@ -1,0 +1,14 @@
+{
+	"Targets": [
+		{
+			"Name": "Project_PAA_24_25",
+			"Path": "..\\Source\\Project_PAA_24_25.Target.cs",
+			"Type": "Game"
+		},
+		{
+			"Name": "Project_PAA_24_25Editor",
+			"Path": "..\\Source\\Project_PAA_24_25Editor.Target.cs",
+			"Type": "Editor"
+		}
+	]
+}

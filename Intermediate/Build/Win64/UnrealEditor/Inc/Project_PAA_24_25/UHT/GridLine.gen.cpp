@@ -43,13 +43,18 @@ struct Z_Construct_UClass_AGridLine_Statics
 		{ "ModuleRelativePath", "GridLine.h" },
 	};
 	static constexpr UECodeGen_Private::FMetaDataPairParam NewProp_ObstacleClass_MetaData[] = {
-		{ "Category", "GridLine" },
+		{ "Category", "Obstacle" },
+		{ "ModuleRelativePath", "GridLine.h" },
+	};
+	static constexpr UECodeGen_Private::FMetaDataPairParam NewProp_TreePercentage_MetaData[] = {
+		{ "Category", "Obstacle" },
 		{ "ModuleRelativePath", "GridLine.h" },
 	};
 #endif // WITH_METADATA
 	static const UECodeGen_Private::FIntPropertyParams NewProp_GridSize;
 	static const UECodeGen_Private::FFloatPropertyParams NewProp_CellSize;
 	static const UECodeGen_Private::FClassPropertyParams NewProp_ObstacleClass;
+	static const UECodeGen_Private::FFloatPropertyParams NewProp_TreePercentage;
 	static const UECodeGen_Private::FPropertyParamsBase* const PropPointers[];
 	static UObject* (*const DependentSingletons[])();
 	static constexpr FCppClassTypeInfoStatic StaticCppClassTypeInfo = {
@@ -60,10 +65,12 @@ struct Z_Construct_UClass_AGridLine_Statics
 const UECodeGen_Private::FIntPropertyParams Z_Construct_UClass_AGridLine_Statics::NewProp_GridSize = { "GridSize", nullptr, (EPropertyFlags)0x0040000000000001, UECodeGen_Private::EPropertyGenFlags::Int, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, STRUCT_OFFSET(AGridLine, GridSize), METADATA_PARAMS(UE_ARRAY_COUNT(NewProp_GridSize_MetaData), NewProp_GridSize_MetaData) };
 const UECodeGen_Private::FFloatPropertyParams Z_Construct_UClass_AGridLine_Statics::NewProp_CellSize = { "CellSize", nullptr, (EPropertyFlags)0x0040000000000001, UECodeGen_Private::EPropertyGenFlags::Float, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, STRUCT_OFFSET(AGridLine, CellSize), METADATA_PARAMS(UE_ARRAY_COUNT(NewProp_CellSize_MetaData), NewProp_CellSize_MetaData) };
 const UECodeGen_Private::FClassPropertyParams Z_Construct_UClass_AGridLine_Statics::NewProp_ObstacleClass = { "ObstacleClass", nullptr, (EPropertyFlags)0x0044000000000001, UECodeGen_Private::EPropertyGenFlags::Class, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, STRUCT_OFFSET(AGridLine, ObstacleClass), Z_Construct_UClass_UClass, Z_Construct_UClass_AObstacle_NoRegister, METADATA_PARAMS(UE_ARRAY_COUNT(NewProp_ObstacleClass_MetaData), NewProp_ObstacleClass_MetaData) };
+const UECodeGen_Private::FFloatPropertyParams Z_Construct_UClass_AGridLine_Statics::NewProp_TreePercentage = { "TreePercentage", nullptr, (EPropertyFlags)0x0040000000000001, UECodeGen_Private::EPropertyGenFlags::Float, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, STRUCT_OFFSET(AGridLine, TreePercentage), METADATA_PARAMS(UE_ARRAY_COUNT(NewProp_TreePercentage_MetaData), NewProp_TreePercentage_MetaData) };
 const UECodeGen_Private::FPropertyParamsBase* const Z_Construct_UClass_AGridLine_Statics::PropPointers[] = {
 	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_AGridLine_Statics::NewProp_GridSize,
 	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_AGridLine_Statics::NewProp_CellSize,
 	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_AGridLine_Statics::NewProp_ObstacleClass,
+	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_AGridLine_Statics::NewProp_TreePercentage,
 };
 static_assert(UE_ARRAY_COUNT(Z_Construct_UClass_AGridLine_Statics::PropPointers) < 2048);
 UObject* (*const Z_Construct_UClass_AGridLine_Statics::DependentSingletons[])() = {
@@ -103,14 +110,14 @@ AGridLine::~AGridLine() {}
 // End Class AGridLine
 
 // Begin Registration
-struct Z_CompiledInDeferFile_FID_Users_alios_OneDrive___unige_it_Documenti_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_GridLine_h_Statics
+struct Z_CompiledInDeferFile_FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_GridLine_h_Statics
 {
 	static constexpr FClassRegisterCompiledInInfo ClassInfo[] = {
-		{ Z_Construct_UClass_AGridLine, AGridLine::StaticClass, TEXT("AGridLine"), &Z_Registration_Info_UClass_AGridLine, CONSTRUCT_RELOAD_VERSION_INFO(FClassReloadVersionInfo, sizeof(AGridLine), 1997166282U) },
+		{ Z_Construct_UClass_AGridLine, AGridLine::StaticClass, TEXT("AGridLine"), &Z_Registration_Info_UClass_AGridLine, CONSTRUCT_RELOAD_VERSION_INFO(FClassReloadVersionInfo, sizeof(AGridLine), 3132325918U) },
 	};
 };
-static FRegisterCompiledInInfo Z_CompiledInDeferFile_FID_Users_alios_OneDrive___unige_it_Documenti_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_GridLine_h_1832739829(TEXT("/Script/Project_PAA_24_25"),
-	Z_CompiledInDeferFile_FID_Users_alios_OneDrive___unige_it_Documenti_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_GridLine_h_Statics::ClassInfo, UE_ARRAY_COUNT(Z_CompiledInDeferFile_FID_Users_alios_OneDrive___unige_it_Documenti_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_GridLine_h_Statics::ClassInfo),
+static FRegisterCompiledInInfo Z_CompiledInDeferFile_FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_GridLine_h_3654968235(TEXT("/Script/Project_PAA_24_25"),
+	Z_CompiledInDeferFile_FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_GridLine_h_Statics::ClassInfo, UE_ARRAY_COUNT(Z_CompiledInDeferFile_FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_GridLine_h_Statics::ClassInfo),
 	nullptr, 0,
 	nullptr, 0);
 // End Registration

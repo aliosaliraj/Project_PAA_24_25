@@ -14,7 +14,7 @@ PRAGMA_DISABLE_DEPRECATION_WARNINGS
 #endif
 #define PROJECT_PAA_24_25_StrategyCamera_generated_h
 
-#define FID_Users_alios_OneDrive___unige_it_Documenti_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_StrategyCamera_h_14_INCLASS_NO_PURE_DECLS \
+#define FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_StrategyCamera_h_14_INCLASS_NO_PURE_DECLS \
 private: \
 	static void StaticRegisterNativesAStrategyCamera(); \
 	friend struct Z_Construct_UClass_AStrategyCamera_Statics; \
@@ -23,7 +23,7 @@ public: \
 	DECLARE_SERIALIZER(AStrategyCamera)
 
 
-#define FID_Users_alios_OneDrive___unige_it_Documenti_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_StrategyCamera_h_14_ENHANCED_CONSTRUCTORS \
+#define FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_StrategyCamera_h_14_ENHANCED_CONSTRUCTORS \
 private: \
 	/** Private move- and copy-constructors, should never be used */ \
 	AStrategyCamera(AStrategyCamera&&); \
@@ -35,12 +35,12 @@ public: \
 	NO_API virtual ~AStrategyCamera();
 
 
-#define FID_Users_alios_OneDrive___unige_it_Documenti_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_StrategyCamera_h_11_PROLOG
-#define FID_Users_alios_OneDrive___unige_it_Documenti_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_StrategyCamera_h_14_GENERATED_BODY \
+#define FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_StrategyCamera_h_11_PROLOG
+#define FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_StrategyCamera_h_14_GENERATED_BODY \
 PRAGMA_DISABLE_DEPRECATION_WARNINGS \
 public: \
-	FID_Users_alios_OneDrive___unige_it_Documenti_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_StrategyCamera_h_14_INCLASS_NO_PURE_DECLS \
-	FID_Users_alios_OneDrive___unige_it_Documenti_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_StrategyCamera_h_14_ENHANCED_CONSTRUCTORS \
+	FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_StrategyCamera_h_14_INCLASS_NO_PURE_DECLS \
+	FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_StrategyCamera_h_14_ENHANCED_CONSTRUCTORS \
 private: \
 PRAGMA_ENABLE_DEPRECATION_WARNINGS
 
@@ -48,7 +48,7 @@ PRAGMA_ENABLE_DEPRECATION_WARNINGS
 template<> PROJECT_PAA_24_25_API UClass* StaticClass<class AStrategyCamera>();
 
 #undef CURRENT_FILE_ID
-#define CURRENT_FILE_ID FID_Users_alios_OneDrive___unige_it_Documenti_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_StrategyCamera_h
+#define CURRENT_FILE_ID FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_StrategyCamera_h
 
 
 PRAGMA_ENABLE_DEPRECATION_WARNINGS

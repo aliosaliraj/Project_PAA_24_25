@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <None Include="..\..\Project_PAA_24_25.uproject" />
+    <Filter Include="Source">
+      <UniqueIdentifier>{F31BBDD1-B3E8-3BCC-9652-680E16935819}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Source\Project_PAA_24_25.Target.cs">
+      <Filter>Source</Filter>
+    </None>
+    <None Include="..\..\Source\Project_PAA_24_25Editor.Target.cs">
+      <Filter>Source</Filter>
+    </None>
+    <None Include="..\..\.gitattributes" />
+    <None Include="..\..\.gitignore" />
+    <None Include="..\..\.vsconfig" />
+    <None Include="..\..\README.md" />
+    <Filter Include="Config">
+      <UniqueIdentifier>{FA535FFB-25E1-3D20-B416-52F9BE21E06E}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Config\DefaultEditor.ini">
+      <Filter>Config</Filter>
+    </None>
+    <None Include="..\..\Config\DefaultEngine.ini">
+      <Filter>Config</Filter>
+    </None>
+    <None Include="..\..\Config\DefaultGame.ini">
+      <Filter>Config</Filter>
+    </None>
+    <None Include="..\..\Config\DefaultInput.ini">
+      <Filter>Config</Filter>
+    </None>
+    <Filter Include="Source\Project_PAA_24_25">
+      <UniqueIdentifier>{28580EF2-212D-39F7-90F6-E7A61C5B4288}</UniqueIdentifier>
+    </Filter>
+    <ClCompile Include="..\..\Source\Project_PAA_24_25\Brawler.cpp">
+      <Filter>Source\Project_PAA_24_25</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Project_PAA_24_25\Brawler.h">
+      <Filter>Source\Project_PAA_24_25</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\Project_PAA_24_25\CellActor.cpp">
+      <Filter>Source\Project_PAA_24_25</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Project_PAA_24_25\CellActor.h">
+      <Filter>Source\Project_PAA_24_25</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\Project_PAA_24_25\GridLine.cpp">
+      <Filter>Source\Project_PAA_24_25</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Project_PAA_24_25\GridLine.h">
+      <Filter>Source\Project_PAA_24_25</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\Project_PAA_24_25\GridPlayerController.cpp">
+      <Filter>Source\Project_PAA_24_25</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Project_PAA_24_25\GridPlayerController.h">
+      <Filter>Source\Project_PAA_24_25</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\Project_PAA_24_25\Obstacle.cpp">
+      <Filter>Source\Project_PAA_24_25</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Project_PAA_24_25\Obstacle.h">
+      <Filter>Source\Project_PAA_24_25</Filter>
+    </ClInclude>
+    <None Include="..\..\Source\Project_PAA_24_25\Project_PAA_24_25.Build.cs">
+      <Filter>Source\Project_PAA_24_25</Filter>
+    </None>
+    <ClCompile Include="..\..\Source\Project_PAA_24_25\Project_PAA_24_25.cpp">
+      <Filter>Source\Project_PAA_24_25</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Project_PAA_24_25\Project_PAA_24_25.h">
+      <Filter>Source\Project_PAA_24_25</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\Project_PAA_24_25\Sniper.cpp">
+      <Filter>Source\Project_PAA_24_25</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Project_PAA_24_25\Sniper.h">
+      <Filter>Source\Project_PAA_24_25</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\Project_PAA_24_25\StrategyCamera.cpp">
+      <Filter>Source\Project_PAA_24_25</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Project_PAA_24_25\StrategyCamera.h">
+      <Filter>Source\Project_PAA_24_25</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\Project_PAA_24_25\TurnBasedGameMode.cpp">
+      <Filter>Source\Project_PAA_24_25</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Project_PAA_24_25\TurnBasedGameMode.h">
+      <Filter>Source\Project_PAA_24_25</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\Project_PAA_24_25\UnitBase.cpp">
+      <Filter>Source\Project_PAA_24_25</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Project_PAA_24_25\UnitBase.h">
+      <Filter>Source\Project_PAA_24_25</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\Project_PAA_24_25\UnitInfoWidget.cpp">
+      <Filter>Source\Project_PAA_24_25</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Project_PAA_24_25\UnitInfoWidget.h">
+      <Filter>Source\Project_PAA_24_25</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
