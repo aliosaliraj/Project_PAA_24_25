@@ -22,10 +22,9 @@ AGridPlayerController::AGridPlayerController()
 void AGridPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	if (GetWorld())
 	{
-		/*
 		for (TActorIterator<AStrategyCamera> It(GetWorld()); It; ++It)
 		{
 			StrategyCamera = *It;
@@ -50,7 +49,7 @@ void AGridPlayerController::BeginPlay()
 		else
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Camera non trovata"));
-		}*/
+		}
 
 		if (UnitInfoWidgetClass)
 		{
@@ -121,7 +120,7 @@ void AGridPlayerController::HandleSelectUnit()
 		}
 		else
 		{
-				UE_LOG(LogTemp, Warning, TEXT("Cannot select AI unit"));
+			UE_LOG(LogTemp, Warning, TEXT("Cannot select AI unit"));
 		}
 	}
 	else
@@ -155,7 +154,7 @@ void AGridPlayerController::ShowMovementRange()
 							Cell->HighlightCell(true);
 						}
 					}
-					else 
+					else
 					{
 						UE_LOG(LogTemp, Warning, TEXT("Raycast hit something else"));
 					}
@@ -234,7 +233,7 @@ void AGridPlayerController::HandleMoveUnit()
 				}
 			}
 		}
-		else 
+		else
 		{
 			UE_LOG(LogTemp, Warning, TEXT("No valid target"));
 		}
@@ -260,7 +259,7 @@ void AGridPlayerController::HandleAttackUnit()
 			UE_LOG(LogTemp, Warning, TEXT("Invalid hit result, no actor found"));
 			return;
 		}
-		
+
 
 		if (IsValid(HitResult.GetActor()) && HitResult.GetActor()->IsA(AUnitBase::StaticClass()))
 		{
@@ -282,6 +281,11 @@ void AGridPlayerController::HandleAttackUnit()
 					}
 
 					UE_LOG(LogTemp, Warning, TEXT("Attacking %s for %d damage"), *TargetUnit->GetName(), CurrentDamage);
+
+					if (SelectedUnit->UnitType == EUnitType::Sniper)
+					{
+						TargetUnit->CounterAttack(SelectedUnit);
+					}
 
 					ATurnBasedGameMode* GameMode = Cast<ATurnBasedGameMode>(GetWorld()->GetAuthGameMode());
 					if (GameMode)

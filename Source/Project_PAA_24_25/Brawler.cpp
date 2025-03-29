@@ -12,11 +12,6 @@ ABrawler::ABrawler()
 	DamageMin = 1;
 	DamageMax = 6;
 
-	if (BrawlerMat)
-	{
-		UnitMesh->SetMaterial(0, BrawlerMat);
-	}
-
 	static ConstructorHelpers::FClassFinder<UUnitInfoWidget> WidgetClass(TEXT("/Game/BlueprintClasses/UnitInfoWidget_BP.UnitInfoWidget_BP_C"));
 	if (WidgetClass.Succeeded())
 	{
@@ -24,4 +19,3 @@ ABrawler::ABrawler()
 	}
 	else UE_LOG(LogTemp, Warning, TEXT("Failed to find UnitInfoWidget_BP class for brawler."));
 }
-

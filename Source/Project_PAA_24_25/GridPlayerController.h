@@ -15,7 +15,7 @@ UCLASS()
 class PROJECT_PAA_24_25_API AGridPlayerController : public APlayerController
 {
 	GENERATED_BODY()
-	
+
 public:
 	AGridPlayerController();
 

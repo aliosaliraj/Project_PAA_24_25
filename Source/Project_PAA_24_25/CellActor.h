@@ -10,8 +10,8 @@ UCLASS()
 class PROJECT_PAA_24_25_API ACellActor : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	// Sets default values for this actor's properties
 	ACellActor();
 
@@ -19,7 +19,7 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
@@ -31,7 +31,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetCellColor(FColor NewColor);
-	
+
 	void ResetToOriginalColor();
 
 private:

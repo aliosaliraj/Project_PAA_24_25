@@ -14,7 +14,6 @@
 // Sets default values
 AGridLine::AGridLine()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	ObstacleClass = AObstacle::StaticClass();
@@ -29,7 +28,14 @@ void AGridLine::BeginPlay()
 {
 	Super::BeginPlay();
 
-	GenerateGrid();
+	if (ObstacleClass)
+	{
+		GenerateGrid();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("GenerateGrid error in BeginPlay"));
+	}
 }
 
 // Called every frame
@@ -70,32 +76,152 @@ void AGridLine::GenerateGrid()
 void AGridLine::CreateGridWithObstacles()
 {
 	int32 NumCells = GridSize * GridSize;
-	int32 NumObstacles = NumCells * 0.1f; //obstacles percent (10)
+	int32 NumObstacles = FMath::RoundToInt(NumCells * 0.1f);	//obstacles percent (10)
+
+	int32 NumTrees = FMath::RoundToInt(NumObstacles * TreePercentage);
+	int32 NumMountains = NumObstacles - NumTrees;
+
+	UE_LOG(LogTemp, Warning, TEXT("NumObstacles: %d, NumTrees: %d, NumMountains: %d"), NumObstacles, NumTrees, NumMountains);
+
+	// 2D rappresentation of grid
+	TArray<TArray<bool>> Grid;
+	Grid.SetNum(GridSize);
+	for (int32 x = 0; x < GridSize; x++)
+	{
+		Grid[x].SetNum(GridSize);
+		for (int32 y = 0; y < GridSize; y++)
+		{
+			Grid[x][y] = false; // free first
+		}
+	}
 
 	for (int32 x = 0; x < GridSize; x++)
 	{
 		for (int32 y = 0; y < GridSize; y++)
 		{
-			if (NumObstacles <= 0) break;
+			if (NumObstacles <= 0)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("NumObstacles <= 0"));
+				return;
+			}
 
 			if (FMath::RandRange(0, NumCells) < NumObstacles)
 			{
 				FVector Location = FVector(x * CellSize, y * CellSize, 0);
-				SpawnObstaclesAtLocation(Location);
+
+				// Checks if is cell is connected or not
+				Grid[x][y] = true; // Starts setting cell occuped
+				if (!IsGridFullyConnected(Grid))
+				{
+					Grid[x][y] = false; // if not connected sets it free
+					continue;
+				}
+
+				// Sets mountain/tree casually
+				bool bTree = false;
+
+				if (NumTrees > 0 && NumMountains > 0)
+				{
+					bTree = FMath::RandBool();
+				}
+				else if (NumTrees > 0)
+				{
+					bTree = true; // Tree if NumTrees > 0
+				}
+				else
+				{
+					bTree = false; // Mountain otherwise
+				}
+
+				SpawnObstaclesAtLocation(Location, bTree);
+
+				if (bTree)
+				{
+					NumTrees--;
+				}
+				else
+				{
+					NumMountains--;
+				}
+
 				--NumObstacles;
+
 			}
 		}
 	}
 }
 
-void AGridLine::SpawnObstaclesAtLocation(const FVector& Location)
+void AGridLine::SpawnObstaclesAtLocation(const FVector& Location, bool bIsTree)
 {
-	if (ObstacleClass)
+	AObstacle* NewObstacle = GetWorld()->SpawnActor<AObstacle>(ObstacleClass, Location, FRotator::ZeroRotator);
+	if (NewObstacle)
 	{
-		GetWorld()->SpawnActor<AObstacle>(ObstacleClass, Location, FRotator::ZeroRotator);
+		NewObstacle->SetMaterial(bIsTree);
 	}
-	else
+}
+
+bool AGridLine::IsGridFullyConnected(const TArray<TArray<bool>>& Grid)
+{
+	TArray<FIntPoint> OpenList; // Cells to verify
+	TArray<FIntPoint> Visited; // Cells visited
+
+	// Start finding a cell to visit
+	for (int32 x = 0; x < GridSize; x++)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Obstacle class not assigned"));
+		for (int32 y = 0; y < GridSize; y++)
+		{
+			if (!Grid[x][y]) // Free cell
+			{
+				OpenList.Add(FIntPoint(x, y));
+				break;
+			}
+		}
+		if (OpenList.Num() > 0)
+		{
+			break;
+		}
 	}
+
+	if (OpenList.Num() == 0)
+	{
+		return true;
+	}
+
+	// Flood Fill algorythm
+	while (OpenList.Num() > 0)
+	{
+		FIntPoint Current = OpenList.Pop();
+		if (Visited.Contains(Current))
+		{
+			continue;
+		}
+
+		Visited.Add(Current);
+
+		TArray<FIntPoint> Neighbors = {FIntPoint(Current.X + 1, Current.Y), FIntPoint(Current.X - 1, Current.Y), FIntPoint(Current.X, Current.Y + 1), FIntPoint(Current.X, Current.Y - 1)};
+
+		for (const FIntPoint& Neighbor : Neighbors)
+		{
+			if (Neighbor.X >= 0 && Neighbor.X < GridSize && Neighbor.Y >= 0 && Neighbor.Y < GridSize && !Grid[Neighbor.X][Neighbor.Y] && !Visited.Contains(Neighbor))
+			{
+				OpenList.Add(Neighbor);
+			}
+		}
+	}
+
+	// Counts all free cells
+	int32 FreeCells = 0;
+	for (int32 x = 0; x < GridSize; x++)
+	{
+		for (int32 y = 0; y < GridSize; y++)
+		{
+			if (!Grid[x][y])
+			{
+				FreeCells++;
+			}
+		}
+	}
+
+	// If visited cells equals free cells done!
+	return Visited.Num() == FreeCells;
 }

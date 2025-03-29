@@ -27,5 +27,4 @@ public:
 	class UTextBlock* UnitHealthText;
 
 	void SetUnitInfo(FString Name, int32 Damage, int32 Health);
-	
 };
