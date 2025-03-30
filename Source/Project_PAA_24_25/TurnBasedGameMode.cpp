@@ -33,7 +33,174 @@ void ATurnBasedGameMode::BeginPlay()
 	Super::BeginPlay();
 
 	SpawnUnits();
-	StartPlayerTurn();
+}
+
+void ATurnBasedGameMode::CoinFlip()
+{
+	bIsPlayerStarting = FMath::RandBool(); // Randomizza chi inizia
+	CurrentTurn = bIsPlayerStarting ? ETurnState::PlayerTurn : ETurnState::EnemyTurn;
+
+	UE_LOG(LogTemp, Warning, TEXT("Coin Flip Result: %s starts first"), bIsPlayerStarting ? TEXT("Player") : TEXT("Enemy"));
+}
+
+void ATurnBasedGameMode::SpawnUnits()
+{
+	CoinFlip();
+	CurrentUnitPlacementIndex = 0;
+
+	if (GetWorld())
+	{
+		// Spawn player unit
+		if (PlayerUnitClass)
+		{
+			AUnitBase* Sniper = GetWorld()->SpawnActor<AUnitBase>(PlayerUnitClass, FVector(0, 0, 0), FRotator::ZeroRotator);
+			if (Sniper)
+			{
+				Sniper->bIsPlayerControlled = true;
+				Sniper->UnitType = EUnitType::Sniper;	//Unit Type:
+				Sniper->UpdateMaterial();
+				PlayerUnits.Add(Sniper);
+			}			
+			
+			AUnitBase* Brawler = GetWorld()->SpawnActor<AUnitBase>(PlayerUnitClass, FVector(0, 0, 0), FRotator::ZeroRotator);
+			if (Brawler)
+			{
+				Brawler->bIsPlayerControlled = true;
+				Brawler->UnitType = EUnitType::Brawler;	//Unit Type:
+				Brawler->UpdateMaterial();
+				PlayerUnits.Add(Brawler);
+			}
+		}
+
+		// Spawn enemy unit
+		if (EnemyUnitClass)
+		{
+			AUnitBase* Sniper = GetWorld()->SpawnActor<AUnitBase>(EnemyUnitClass, FVector(0, 0, 0), FRotator::ZeroRotator);
+			if (Sniper)
+			{
+				Sniper->bIsPlayerControlled = false;
+				Sniper->UnitType = EUnitType::Sniper;	//Unit Type:
+				Sniper->UpdateMaterial();
+				EnemyUnits.Add(Sniper);
+			}
+
+			AUnitBase* Brawler = GetWorld()->SpawnActor<AUnitBase>(EnemyUnitClass, FVector(0, 0, 0), FRotator::ZeroRotator);
+			if (Brawler)
+			{
+				Brawler->bIsPlayerControlled = false;
+				Brawler->UnitType = EUnitType::Brawler;	//Unit Type:
+				Brawler->UpdateMaterial();
+				EnemyUnits.Add(Brawler);
+			}
+		}
+
+		PositionUnitsAlternately();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No world found"));
+	}
+}
+
+FVector ATurnBasedGameMode::CalculateEnemyPlacementLocation()
+{
+	FVector PlacementLocation;
+	bool bIsValidLocation = false;
+
+	while (!bIsValidLocation)
+	{
+		// Genera una posizione casuale sulla griglia
+		int32 GridX = FMath::RandRange(0, 24);
+		int32 GridY = FMath::RandRange(0, 24);
+		PlacementLocation = FVector(GridX * 100.0f, GridY * 100.0f, 0.0f); // Ogni cella è larga 100 unità
+
+		// Controlla se la posizione è valida
+		bIsValidLocation = IsLocationFreeFromObstacles(PlacementLocation);
+	}
+
+	return PlacementLocation;
+}
+
+bool ATurnBasedGameMode::IsLocationFreeFromObstacles(FVector Location)
+{
+    TArray<AActor*> OverlappingActors;
+    // Usa SphereOverlapActors per controllare ostacoli nella posizione
+    UKismetSystemLibrary::SphereOverlapActors(GetWorld(), Location, 50.0f, TArray<TEnumAsByte<EObjectTypeQuery>>(), AObstacle::StaticClass(), TArray<AActor*>(), OverlappingActors);
+
+    // Se ci sono ostacoli nella posizione, la posizione non è valida
+    return OverlappingActors.Num() == 0;
+}
+
+void ATurnBasedGameMode::HandlePlayerUnitPlacement(FVector ChosenLocation)
+{
+	if (bIsPlayerPlacingUnits && CurrentPlayerUnitIndex < PlayerUnits.Num())
+	{
+		// Posiziona l'unità selezionata
+		PlayerUnits[CurrentPlayerUnitIndex]->SetActorLocation(ChosenLocation);
+		UE_LOG(LogTemp, Warning, TEXT("Player placed unit %d at %s"), CurrentPlayerUnitIndex, *ChosenLocation.ToString());
+
+		CurrentPlayerUnitIndex++;
+		bIsPlayerPlacingUnits = false;
+
+		// Continua al prossimo posizionamento
+		PositionUnitsAlternately();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No unit to place or not player's turn."));
+	}
+}
+
+void ATurnBasedGameMode::PositionUnitsAlternately()
+{
+	// Se tutte le unità sono posizionate, avvia il gioco
+	if (CurrentPlayerUnitIndex >= PlayerUnits.Num() && CurrentEnemyUnitIndex >= EnemyUnits.Num())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("All units positioned. Starting game."));
+		StartGame();
+		return;
+	}
+
+	// Determina di chi è il turno per il posizionamento
+	bool bIsPlayerTurn = (bIsPlayerStarting && (CurrentPlayerUnitIndex + CurrentEnemyUnitIndex) % 2 == 0) ||
+		(!bIsPlayerStarting && (CurrentPlayerUnitIndex + CurrentEnemyUnitIndex) % 2 != 0);
+
+	if (bIsPlayerTurn && CurrentPlayerUnitIndex < PlayerUnits.Num())
+	{
+		// Aspetta l'input del giocatore per posizionare l'unità
+		UE_LOG(LogTemp, Warning, TEXT("Player's turn to position unit %d."), CurrentPlayerUnitIndex);
+
+		bIsPlayerPlacingUnits = true; // Attiva la modalità di posizionamento per il giocatore
+	}
+	else if (!bIsPlayerTurn && CurrentEnemyUnitIndex < EnemyUnits.Num())
+	{
+		// Posizionamento automatico dell'IA
+		UE_LOG(LogTemp, Warning, TEXT("AI's turn to position unit %d."), CurrentEnemyUnitIndex);
+
+		FVector EnemyPlacementLocation = CalculateEnemyPlacementLocation();
+		EnemyUnits[CurrentEnemyUnitIndex]->SetActorLocation(EnemyPlacementLocation);
+
+		UE_LOG(LogTemp, Warning, TEXT("AI positioned unit at %s"), *EnemyPlacementLocation.ToString());
+
+		// Incrementa l'indice dell'IA
+		CurrentEnemyUnitIndex++;
+
+		// Continua al prossimo turno di posizionamento
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ATurnBasedGameMode::PositionUnitsAlternately, 1.0f, false);
+	}
+}
+
+void ATurnBasedGameMode::StartGame()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Game started"));
+	if (CurrentTurn == ETurnState::PlayerTurn)
+	{
+		StartPlayerTurn();
+	}
+	else
+	{
+		StartEnemyTurn();
+	}
 }
 
 void ATurnBasedGameMode::StartPlayerTurn()
@@ -113,6 +280,7 @@ void ATurnBasedGameMode::StartEnemyTurn()
 	{
 		FVector StartLocation = ClosestEnemyUnit->GetActorLocation();
 		FVector TargetLocation = PlayerUnit->GetActorLocation();
+		bool bIsPlayerControlled = false;
 
 		// Allineiamo alla griglia
 		StartLocation.X = FMath::GridSnap(StartLocation.X, 100.0f);
@@ -123,7 +291,7 @@ void ATurnBasedGameMode::StartEnemyTurn()
 		//UE_LOG(LogTemp, Warning, TEXT("AI StartLocation: X=%f Y=%f"), StartLocation.X, StartLocation.Y);
 		//UE_LOG(LogTemp, Warning, TEXT("AI TargetLocation: X=%f Y=%f"), TargetLocation.X, TargetLocation.Y);
 
-		Path = FindPath(ClosestEnemyUnit, StartLocation, TargetLocation);
+		Path = FindPath(ClosestEnemyUnit, StartLocation, TargetLocation, bIsPlayerControlled);
 		MovingUnit = ClosestEnemyUnit;
 
 		if (Path.Num() > 0)
@@ -150,7 +318,7 @@ void ATurnBasedGameMode::EndTurn()
 	if (CurrentTurn == ETurnState::PlayerTurn)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Ending player turn"));
-		GetWorld()->GetTimerManager().SetTimerForNextTick(this, &ATurnBasedGameMode::StartEnemyTurn);
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ATurnBasedGameMode::StartEnemyTurn, 1.0f, false);
 	}
 	else
 	{
@@ -158,57 +326,6 @@ void ATurnBasedGameMode::EndTurn()
 		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ATurnBasedGameMode::StartPlayerTurn, 1.0f, false);
 	}
 }
-
-void ATurnBasedGameMode::SpawnUnits()
-{
-	if (GetWorld())
-	{
-		// Spawn player unit
-		if (PlayerUnitClass)
-		{
-			FVector PlayerLocation = FVector(100, 100, 0);
-			AUnitBase* PlayerUnit = GetWorld()->SpawnActor<AUnitBase>(PlayerUnitClass, PlayerLocation, FRotator::ZeroRotator);
-			if (PlayerUnit)
-			{
-				PlayerUnit->bIsPlayerControlled = true;
-				PlayerUnit->UnitType = EUnitType::Sniper;	//Unit Type:
-				PlayerUnit->UpdateMaterial();
-
-				UE_LOG(LogTemp, Warning, TEXT("Player unit spawned at %s"), *PlayerLocation.ToString());
-				UE_LOG(LogTemp, Warning, TEXT("Player unit is controlled by: %s"), PlayerUnit->bIsPlayerControlled ? TEXT("Player") : TEXT("AI"));
-			}
-			else
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Failed to spawn player unit"));
-			}
-		}
-
-		// Spawn enemy unit
-		if (EnemyUnitClass)
-		{
-			FVector EnemyLocation = FVector(500, 500, 0);
-			AUnitBase* EnemyUnit = GetWorld()->SpawnActor<AUnitBase>(EnemyUnitClass, EnemyLocation, FRotator::ZeroRotator);
-			if (EnemyUnit)
-			{
-				EnemyUnit->bIsPlayerControlled = false;
-				EnemyUnit->UnitType = EUnitType::Brawler;	//Unit Type:
-				EnemyUnit->UpdateMaterial();
-
-				UE_LOG(LogTemp, Warning, TEXT("Enemy unit spawned at %s"), *EnemyLocation.ToString());
-				UE_LOG(LogTemp, Warning, TEXT("Enemy unit is controlled by: %s"), EnemyUnit->bIsPlayerControlled ? TEXT("Player") : TEXT("AI"));
-			}
-			else
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Failed to spawn enemy unit"));
-			}
-		}
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("No world found"));
-	}
-}
-
 
 bool ATurnBasedGameMode::IsValidMove(FVector Position, FVector TargetLocation, AUnitBase* Unit)
 {
@@ -222,7 +339,7 @@ bool ATurnBasedGameMode::IsValidMove(FVector Position, FVector TargetLocation, A
 
 	if (OverlappingActors.Num() > 0)
 	{
-		//UE_LOG(LogTemp, Warning, TEXT("Obstacle detected at X=%f Y=%f"), GridPosition.X, GridPosition.Y);
+		UE_LOG(LogTemp, Warning, TEXT("Obstacle detected at X=%f Y=%f"), GridPosition.X, GridPosition.Y);
 		return false;
 	}
 
@@ -235,12 +352,19 @@ bool ATurnBasedGameMode::IsValidMove(FVector Position, FVector TargetLocation, A
 	{
 		AUnitBase* BlockingUnit = Cast<AUnitBase>(Actor);
 
-		if (BlockingUnit && BlockingUnit != Unit)
+		if (BlockingUnit)
 		{
-			// Se c'è una unità sulla cella e non è il target, blocca il movimento
+			// Se l'unità sulla cella è un'unità nemica, blocca il movimento
+			if (BlockingUnit->bIsPlayerControlled != Unit->bIsPlayerControlled)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Cell blocked by enemy unit!"));
+				return false;
+			}
+
+			// Se c'è una unità sulla cella nemica e non è il target, blocca il movimento
 			if (FVector::Dist(GridPosition, TargetGridPosition) < 0.1f)
 			{
-				//UE_LOG(LogTemp, Warning, TEXT("Cell blocked by unit!"));
+				UE_LOG(LogTemp, Warning, TEXT("Cell blocked by unit!"));
 				return false;
 			}
 		}
@@ -250,13 +374,13 @@ bool ATurnBasedGameMode::IsValidMove(FVector Position, FVector TargetLocation, A
 	float MaxDistance = Unit->MaxMovement * 100;
 	if (FVector::Dist(Position, Unit->GetActorLocation()) > MaxDistance)
 	{
-		//UE_LOG(LogTemp, Warning, TEXT("Out of movement range: Max = %f, Actual = %f"), MaxDistance, FVector::Dist(Position, Unit->GetActorLocation()));
+		UE_LOG(LogTemp, Warning, TEXT("Out of movement range: Max = %f, Actual = %f"), MaxDistance, FVector::Dist(Position, Unit->GetActorLocation()));
 		return false;
 	}
 	return true;
 }
 
-TArray<FVector> ATurnBasedGameMode::FindPath(AUnitBase* Unit, FVector StartLocation, FVector TargetLocation)
+TArray<FVector> ATurnBasedGameMode::FindPath(AUnitBase* Unit, FVector StartLocation, FVector TargetLocation, bool bIsPlayerControlled)
 {
 	Path.Empty();
 
@@ -269,7 +393,7 @@ TArray<FVector> ATurnBasedGameMode::FindPath(AUnitBase* Unit, FVector StartLocat
 	StartNode->FCost = StartNode->GCost + StartNode->HCost;
 
 	OpenList.Add(StartLocation, StartNode);
-	//UE_LOG(LogTemp, Warning, TEXT("Starting pathfinding from: X=%f Y=%f"), StartLocation.X, StartLocation.Y);
+	UE_LOG(LogTemp, Warning, TEXT("Starting pathfinding from: X=%f Y=%f"), StartLocation.X, StartLocation.Y);
 
 	int32 MaxIterations = 1000; // Limite di sicurezza
 	int32 Iterations = 0;
@@ -296,42 +420,65 @@ TArray<FVector> ATurnBasedGameMode::FindPath(AUnitBase* Unit, FVector StartLocat
 		//UE_LOG(LogTemp, Warning, TEXT("Current node: X=%.2f Y=%.2f FCost=%.2f"), CurrentNode->Position.X, CurrentNode->Position.Y, CurrentNode->FCost);
 
 		// Se abbiamo raggiunto la destinazione → ricostruiamo il percorso
-		if (FVector::Dist(CurrentNode->Position, TargetLocation) <= 100.0f)
-		//if (FMath::Abs(CurrentNode->Position.X - TargetLocation.X) <= 100 && FMath::Abs(CurrentNode->Position.Y - TargetLocation.Y) <= 100)
+		if (bIsPlayerControlled)
 		{
-			//UE_LOG(LogTemp, Warning, TEXT("Stopping before reaching target at X=%.2f Y=%.2f"), CurrentNode->Position.X, CurrentNode->Position.Y);
-
-			while (CurrentNode)
+			if (FVector::Dist(CurrentNode->Position, TargetLocation) <= KINDA_SMALL_NUMBER)
 			{
-				Path.Insert(CurrentNode->Position, 0);
-				CurrentNode = CurrentNode->Parent;
-			}
+				while (CurrentNode)
+				{
+					Path.Insert(CurrentNode->Position, 0);
+					CurrentNode = CurrentNode->Parent;
+				}
+				/*UE_LOG(LogTemp, Warning, TEXT("Path found:"));
 
-			//UE_LOG(LogTemp, Warning, TEXT("Path found:"));
-			/*
-			for (FVector Step : Path)
+				for (FVector Step : Path)
+				{
+					UE_LOG(LogTemp, Warning, TEXT(" -> X=%f Y=%f"), Step.X, Step.Y);
+				}
+
+				Cleanup*/
+				for (auto& Elem : OpenList)
+					delete Elem.Value;
+
+				return Path;
+			}
+			else
 			{
-				UE_LOG(LogTemp, Warning, TEXT(" -> X=%f Y=%f"), Step.X, Step.Y);
+				UE_LOG(LogTemp, Warning, TEXT("Error in calculating player distance"));
 			}
-			*/
-			// Cleanup
-			for (auto& Elem : OpenList)
-				delete Elem.Value;
-
-			return Path;
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Error calculating distance in pathfinding"));
-		}
+			if (FVector::Dist(CurrentNode->Position, TargetLocation) <= 100.0f)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Stopping before reaching target at X=%.2f Y=%.2f"), CurrentNode->Position.X, CurrentNode->Position.Y);
 
-		// Possibili mosse (NO diagonali)
-		TArray<FVector> Neighbors = {
-			CurrentNode->Position + FVector(100, 0, 0),   // Destra
-			CurrentNode->Position + FVector(-100, 0, 0),  // Sinistra
-			CurrentNode->Position + FVector(0, 100, 0),   // Sopra
-			CurrentNode->Position + FVector(0, -100, 0)   // Sotto
-		};
+				while (CurrentNode)
+				{
+					Path.Insert(CurrentNode->Position, 0);
+					CurrentNode = CurrentNode->Parent;
+				}
+
+				//UE_LOG(LogTemp, Warning, TEXT("Path found:"));
+				/*
+				for (FVector Step : Path)
+				{
+					UE_LOG(LogTemp, Warning, TEXT(" -> X=%f Y=%f"), Step.X, Step.Y);
+				}
+				*/
+				// Cleanup
+				for (auto& Elem : OpenList)
+					delete Elem.Value;
+
+				return Path;
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Error in calculating AI distance"));
+			}
+		}
+		// Posible moves
+		TArray<FVector> Neighbors = { CurrentNode->Position + FVector(100, 0, 0), CurrentNode->Position + FVector(-100, 0, 0), CurrentNode->Position + FVector(0, 100, 0), CurrentNode->Position + FVector(0, -100, 0) };
 
 		for (FVector NeighborPosition : Neighbors)
 		{
@@ -344,6 +491,11 @@ TArray<FVector> ATurnBasedGameMode::FindPath(AUnitBase* Unit, FVector StartLocat
 				continue;
 
 			int32 NewGCost = CurrentNode->GCost + 1;
+			/*
+			if (NewGCost > Unit->MaxMovement)
+			{
+				continue; // Continue if GCost exceeds MaxMovement
+			}*/
 
 			if (!OpenList.Contains(NeighborPosition))
 			{
@@ -400,7 +552,7 @@ void ATurnBasedGameMode::MoveStepByStep()
 		}
 		else
 		{
-			//UE_LOG(LogTemp, Warning, TEXT("Invalid move, stopping movement"));
+			UE_LOG(LogTemp, Warning, TEXT("Invalid move, stopping movement"));
 			GetWorld()->GetTimerManager().ClearTimer(StepMoveTimer);
 			EndTurn();
 		}
@@ -408,7 +560,7 @@ void ATurnBasedGameMode::MoveStepByStep()
 	else
 	{
 		// Fine del percorso
-		//UE_LOG(LogTemp, Warning, TEXT("Movement finished"));
+		UE_LOG(LogTemp, Warning, TEXT("Movement finished"));
 		GetWorld()->GetTimerManager().ClearTimer(StepMoveTimer);
 		EndTurn();
 	}

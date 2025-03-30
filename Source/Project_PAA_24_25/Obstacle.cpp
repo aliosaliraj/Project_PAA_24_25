@@ -62,11 +62,11 @@ void AObstacle::SetMaterial(bool bTree)
 	if (bIsTree && TreeMaterial)
 	{
 		ObstacleMesh->SetMaterial(0, TreeMaterial);
-		UE_LOG(LogTemp, Error, TEXT("TreeMaterial set"));
+		UE_LOG(LogTemp, Warning, TEXT("TreeMaterial set"));
 	}
 	else if (!bIsTree && MountainMaterial)
 	{
 		ObstacleMesh->SetMaterial(0, MountainMaterial);
-		UE_LOG(LogTemp, Error, TEXT("MountainMaterial succeded"));
+		UE_LOG(LogTemp, Warning, TEXT("MountainMaterial set"));
 	}
 }

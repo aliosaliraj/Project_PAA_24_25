@@ -75,7 +75,14 @@ public:
 	void SpawnUnits();
 
 	UFUNCTION(BlueprintCallable)
-	TArray<FVector> FindPath(AUnitBase* Unit, FVector StartLocation, FVector TargetLocation);
+	TArray<FVector> FindPath(AUnitBase* Unit, FVector StartLocation, FVector TargetLocation, bool bIsPlayerControlled);
+
+	void MoveStepByStep();
+
+	void CoinFlip();
+
+	void HandlePlayerUnitPlacement(FVector ChosenLocation);
+
 
 private:
 	TArray<FVector> Path;
@@ -83,5 +90,19 @@ private:
 	FTimerHandle StepMoveTimer;
 	AUnitBase* MovingUnit;
 
-	void MoveStepByStep();
+	bool bIsPlayerStarting = false;
+	bool bIsPlayerPlacingUnits = true;
+	bool IsLocationFreeFromObstacles(FVector Location);
+
+	int32 CurrentUnitPlacementIndex = 0;
+	int32 CurrentPlayerUnitIndex = 0;
+	int32 CurrentEnemyUnitIndex = 0;
+
+	TArray<AUnitBase*> PlayerUnits;
+	TArray<AUnitBase*> EnemyUnits;
+
+	FVector CalculateEnemyPlacementLocation();
+
+	void PositionUnitsAlternately();
+	void StartGame();
 };

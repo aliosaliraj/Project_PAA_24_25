@@ -63,6 +63,28 @@ void AGridPlayerController::BeginPlay()
 	}
 }
 
+void AGridPlayerController::HandlePlaceUnit()
+{
+	FHitResult HitResult;
+	GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, false, HitResult);
+
+	if (HitResult.bBlockingHit)
+	{
+		ACellActor* ClickedCell = Cast<ACellActor>(HitResult.GetActor());
+		if (IsValid(ClickedCell))
+		{
+			FVector ChosenLocation = ClickedCell->GetActorLocation();
+
+			// Chiama il metodo nel GameMode per gestire il posizionamento
+			ATurnBasedGameMode* GameMode = Cast<ATurnBasedGameMode>(GetWorld()->GetAuthGameMode());
+			if (GameMode)
+			{
+				GameMode->HandlePlayerUnitPlacement(ChosenLocation);
+			}
+		}
+	}
+}
+
 void AGridPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
@@ -70,6 +92,7 @@ void AGridPlayerController::SetupInputComponent()
 	InputComponent->BindAction("SelectUnit", IE_Pressed, this, &AGridPlayerController::HandleSelectUnit);
 	InputComponent->BindAction("MoveUnit", IE_Pressed, this, &AGridPlayerController::HandleMoveUnit);
 	InputComponent->BindAction("AttackUnit", IE_Pressed, this, &AGridPlayerController::HandleAttackUnit);
+	InputComponent->BindAction("PlaceUnit", IE_Pressed, this, &AGridPlayerController::HandlePlaceUnit);
 }
 
 void AGridPlayerController::HandleSelectUnit()
@@ -79,48 +102,78 @@ void AGridPlayerController::HandleSelectUnit()
 
 	if (HitResult.bBlockingHit)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Hit actor: %s"), *HitResult.GetActor()->GetName());
+		UE_LOG(LogTemp, Warning, TEXT("Collision channel: %d"), HitResult.Component->GetCollisionObjectType());
+
+		// Assicurati che l'attore intercettato sia valido
+		if (HitResult.GetActor())
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Hit actor: %s"), *HitResult.GetActor()->GetName());
-			UE_LOG(LogTemp, Warning, TEXT("Collision channel: %d"), HitResult.Component->GetCollisionObjectType());
-		}
-
-		AUnitBase* HitUnit = Cast<AUnitBase>(HitResult.GetActor());
-		if (IsValid(HitUnit) && HitUnit->bIsPlayerControlled)
-		{
-			SelectedUnit = HitUnit;
-			ClearMovementRange();
-			UE_LOG(LogTemp, Warning, TEXT("Selected unit: %s"), *HitUnit->GetName());
-			ShowMovementRange();
-
-			if (SelectedUnit->UnitInfoWidget)
+			AUnitBase* HitUnit = Cast<AUnitBase>(HitResult.GetActor());
+			if (IsValid(HitUnit) && HitUnit->bIsPlayerControlled)
 			{
-				SelectedUnit->UnitInfoWidget->RemoveFromParent();
-				SelectedUnit->UnitInfoWidget = nullptr;
-			}
+				// Controlla se l'unità selezionata è la stessa su cui stiamo cliccando
+				if (SelectedUnit == HitUnit)
+				{
+					// Alterna visibilità del range di movimento
+					if (bIsMovementRangeVisible)
+					{
+						ClearMovementRange(); // Nasconde il range
+						bIsMovementRangeVisible = false;
+						UE_LOG(LogTemp, Warning, TEXT("Movement range hidden for unit: %s"), *HitUnit->GetName());
+					}
+					else
+					{
+						ShowMovementRange(); // Mostra il range
+						bIsMovementRangeVisible = true;
+						UE_LOG(LogTemp, Warning, TEXT("Movement range displayed for unit: %s"), *HitUnit->GetName());
+					}
+				}
+				else
+				{
+					// Cambia unità selezionata
+					SelectedUnit = HitUnit;
+					ClearMovementRange(); // Nasconde il range della precedente unità
+					ShowMovementRange(); // Mostra il range per la nuova unità
+					bIsMovementRangeVisible = true;
+					UE_LOG(LogTemp, Warning, TEXT("Unit changed: %s"), *HitUnit->GetName());
+				}
 
-			if (SelectedUnit->UnitInfoWidgetClass)
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Widget class is valid: %s"), *HitUnit->UnitInfoWidgetClass->GetName());
-				SelectedUnit->UnitInfoWidget = CreateWidget<UUnitInfoWidget>(this, SelectedUnit->UnitInfoWidgetClass);
+				// Aggiorna il widget delle informazioni dell'unità
 				if (SelectedUnit->UnitInfoWidget)
 				{
-					SelectedUnit->UnitInfoWidget->SetUnitInfo(SelectedUnit->GetName(), SelectedUnit->CurrentDamage, SelectedUnit->Health);
-					SelectedUnit->UnitInfoWidget->AddToViewport();
+					SelectedUnit->UnitInfoWidget->RemoveFromParent();
+					SelectedUnit->UnitInfoWidget = nullptr;
 				}
-			}
-			if (IsValid(SelectedUnit) && SelectedUnit->UnitInfoWidget)
-			{
-				SelectedUnit->UnitInfoWidget->SetVisibility(ESlateVisibility::Visible);
-				ShowUnitInfo();
+
+				if (SelectedUnit->UnitInfoWidgetClass)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Widget class is valid: %s"), *HitUnit->UnitInfoWidgetClass->GetName());
+					SelectedUnit->UnitInfoWidget = CreateWidget<UUnitInfoWidget>(this, SelectedUnit->UnitInfoWidgetClass);
+					if (SelectedUnit->UnitInfoWidget)
+					{
+						SelectedUnit->UnitInfoWidget->SetUnitInfo(SelectedUnit->GetName(), SelectedUnit->CurrentDamage, SelectedUnit->Health);
+						SelectedUnit->UnitInfoWidget->AddToViewport();
+					}
+				}
+
+				if (IsValid(SelectedUnit) && SelectedUnit->UnitInfoWidget)
+				{
+					SelectedUnit->UnitInfoWidget->SetVisibility(ESlateVisibility::Visible);
+					ShowUnitInfo();
+				}
+				else
+				{
+					UE_LOG(LogTemp, Warning, TEXT("No unit selected for widget"));
+				}
 			}
 			else
 			{
-				UE_LOG(LogTemp, Warning, TEXT("No unit selected for widget"));
+				UE_LOG(LogTemp, Warning, TEXT("Cannot select AI unit or invalid actor"));
 			}
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Cannot select AI unit"));
+			UE_LOG(LogTemp, Warning, TEXT("Hit actor is not valid"));
 		}
 	}
 	else
@@ -135,29 +188,44 @@ void AGridPlayerController::ShowMovementRange()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Showing movement range for: %s"), *SelectedUnit->GetName());
 
-		for (int32 x = -SelectedUnit->MaxMovement; x <= SelectedUnit->MaxMovement; x++)
+		ATurnBasedGameMode* GameMode = Cast<ATurnBasedGameMode>(GetWorld()->GetAuthGameMode());
+		if (!GameMode)
 		{
-			for (int32 y = -SelectedUnit->MaxMovement; y <= SelectedUnit->MaxMovement; y++)
+			UE_LOG(LogTemp, Warning, TEXT("GameMode not found"));
+			return;
+		}
+
+		TArray<FVector> AccessibleCells;
+		FVector StartLocation = SelectedUnit->GetActorLocation();
+
+		for (int32 x = 0; x < 25; x++)
+		{
+			for (int32 y = 0; y < 25; y++)
 			{
-				if (FMath::Abs(x) + FMath::Abs(y) <= SelectedUnit->MaxMovement)
+				FVector TargetLocation(x * 100.0f, y * 100.0f, StartLocation.Z); // Dimensione cella: 100
+
+				// Usa FindPath per determinare se la cella è raggiungibile
+				TArray<FVector> Path = GameMode->FindPath(SelectedUnit, StartLocation, TargetLocation, true);
+				if (Path.Num() > 0 && Path.Num() <= SelectedUnit->MaxMovement)
 				{
-					FVector Location = SelectedUnit->GetActorLocation() + FVector(x * 100, y * 100, 0);
+					AccessibleCells.Add(TargetLocation);
+					UE_LOG(LogTemp, Warning, TEXT("Accessible cell: X=%f, Y=%f"), TargetLocation.X, TargetLocation.Y);
+				}
 
-					FHitResult CellHit;
-					GetWorld()->LineTraceSingleByChannel(CellHit, Location + FVector(0, 0, 100), Location - FVector(0, 0, 100), ECC_WorldStatic);
+			}
+		}
 
-					if (CellHit.bBlockingHit)
-					{
-						ACellActor* Cell = Cast<ACellActor>(CellHit.GetActor());
-						if (Cell)
-						{
-							Cell->HighlightCell(true);
-						}
-					}
-					else
-					{
-						UE_LOG(LogTemp, Warning, TEXT("Raycast hit something else"));
-					}
+		for (const FVector& Location : AccessibleCells)
+		{
+			FHitResult HitResult;
+			GetWorld()->LineTraceSingleByChannel(HitResult, Location + FVector(0, 0, 100), Location - FVector(0, 0, 100), ECC_WorldStatic);
+
+			if (HitResult.bBlockingHit)
+			{
+				ACellActor* Cell = Cast<ACellActor>(HitResult.GetActor());
+				if (IsValid(Cell))
+				{
+					Cell->HighlightCell(true); // Funzione esistente per evidenziare la cella
 				}
 			}
 		}
@@ -201,35 +269,51 @@ void AGridPlayerController::HandleMoveUnit()
 			ACellActor* Cell = Cast<ACellActor>(HitResult.GetActor());
 			if (IsValid(Cell))
 			{
-				FVector TargetLocation = HitResult.Location;
-				TargetLocation.Z = SelectedUnit->GetActorLocation().Z;
+				FVector PStartLocation = SelectedUnit->GetActorLocation();
+				FVector PTargetLocation = HitResult.Location;
+				PTargetLocation.Z = SelectedUnit->GetActorLocation().Z;
 
-				TargetLocation.X = FMath::RoundToFloat(TargetLocation.X / 100) * 100;
-				TargetLocation.Y = FMath::RoundToFloat(TargetLocation.Y / 100) * 100;
+				PTargetLocation.X = FMath::RoundToFloat(PTargetLocation.X / 100) * 100;
+				PTargetLocation.Y = FMath::RoundToFloat(PTargetLocation.Y / 100) * 100;
 
-				int32 DistanceX = FMath::Abs(TargetLocation.X - SelectedUnit->GetActorLocation().X) / 100;
-				int32 DistanceY = FMath::Abs(TargetLocation.Y - SelectedUnit->GetActorLocation().Y) / 100;
+				UE_LOG(LogTemp, Warning, TEXT("Moving into: X=%f Y=%f"), PTargetLocation.X, PTargetLocation.Y);
 
-				UE_LOG(LogTemp, Warning, TEXT("Trying to move to: X=%f Y=%f"), TargetLocation.X, TargetLocation.Y);
-				UE_LOG(LogTemp, Warning, TEXT("Distance calculated: X=%d Y=%d"), DistanceX, DistanceY);
+				// Allineiamo alla griglia
+				PStartLocation.X = FMath::GridSnap(PStartLocation.X, 100.0f);
+				PStartLocation.Y = FMath::GridSnap(PStartLocation.Y, 100.0f);
+				PTargetLocation.X = FMath::GridSnap(PTargetLocation.X, 100.0f);
+				PTargetLocation.Y = FMath::GridSnap(PTargetLocation.Y, 100.0f);
 
-				if (DistanceX + DistanceY <= SelectedUnit->MaxMovement)
+				UE_LOG(LogTemp, Warning, TEXT("Player StartLocation: X=%f Y=%f"), PStartLocation.X, PStartLocation.Y);
+				UE_LOG(LogTemp, Warning, TEXT("Player TargetLocation: X=%f Y=%f"), PTargetLocation.X, PTargetLocation.Y);
+
+				ATurnBasedGameMode* GameMode = Cast<ATurnBasedGameMode>(GetWorld()->GetAuthGameMode());
+				if (GameMode)
 				{
-					SelectedUnit->SetActorLocation(TargetLocation);
-					SelectedUnit = nullptr;
-					ClearMovementRange();
+					bool bIsPlayerControlled = true;
+					PlayerPath.Empty();
+					PlayerPath = GameMode->FindPath(SelectedUnit, PStartLocation, PTargetLocation, bIsPlayerControlled);
+					PMovingUnit = SelectedUnit;
 
-					if (GetWorld()->GetAuthGameMode())
+					if (PlayerPath.Num() > 0)
 					{
-						ATurnBasedGameMode* GameMode = Cast<ATurnBasedGameMode>(GetWorld()->GetAuthGameMode());
-						if (GameMode) GameMode->EndTurn();
-
-						UE_LOG(LogTemp, Warning, TEXT("Turn ended"));
+						// Start StepByStep movement
+						PCurrentStepIndex = 0;
+						GetWorld()->GetTimerManager().SetTimer(PStepMoveTimer, this, &AGridPlayerController::MovePlayerStepByStep, 0.2f, true);
 					}
+					else
+					{
+						UE_LOG(LogTemp, Warning, TEXT("No valid path found for Player"));
+						GameMode->EndTurn();
+					}
+					GameMode->EndTurn();
+
+					ClearMovementRange();
+					//SelectedUnit = nullptr;
 				}
 				else
 				{
-					UE_LOG(LogTemp, Warning, TEXT("Movement denied: out of range"));
+					UE_LOG(LogTemp, Warning, TEXT("No world"));
 				}
 			}
 		}
@@ -237,6 +321,39 @@ void AGridPlayerController::HandleMoveUnit()
 		{
 			UE_LOG(LogTemp, Warning, TEXT("No valid target"));
 		}
+	}
+}
+
+void AGridPlayerController::MovePlayerStepByStep()
+{
+	if (!IsValid(PMovingUnit) || PlayerPath.Num() == 0)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Invalid MovingUnit or empty PlayerPath"));
+		GetWorld()->GetTimerManager().ClearTimer(PStepMoveTimer);
+		return;
+	}
+
+	if (PCurrentStepIndex < PlayerPath.Num())
+	{
+		FVector NextPosition = PlayerPath[PCurrentStepIndex];
+
+		UE_LOG(LogTemp, Warning, TEXT("Moving to position: X=%f, Y=%f, Z=%f"), NextPosition.X, NextPosition.Y, NextPosition.Z);
+
+		PMovingUnit->SetActorLocation(NextPosition);
+		PCurrentStepIndex++;
+
+		// Controlla se il movimento è completato
+		if (PCurrentStepIndex >= PlayerPath.Num())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Movement completed"));
+			GetWorld()->GetTimerManager().ClearTimer(PStepMoveTimer);
+		}
+	}
+	else
+	{
+		// Termina il movimento
+		UE_LOG(LogTemp, Warning, TEXT("Movement finished or invalid unit"));
+		GetWorld()->GetTimerManager().ClearTimer(PStepMoveTimer);
 	}
 }
 
@@ -264,6 +381,11 @@ void AGridPlayerController::HandleAttackUnit()
 		if (IsValid(HitResult.GetActor()) && HitResult.GetActor()->IsA(AUnitBase::StaticClass()))
 		{
 			AUnitBase* TargetUnit = Cast<AUnitBase>(HitResult.GetActor());
+			if (!IsValid(TargetUnit))
+			{
+				UE_LOG(LogTemp, Error, TEXT("Failed to cast actor to AUnitBase"));
+				return;
+			}
 
 			if (IsValid(TargetUnit) && TargetUnit != SelectedUnit && !TargetUnit->bIsPlayerControlled)
 			{

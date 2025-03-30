@@ -19,12 +19,15 @@ class PROJECT_PAA_24_25_API AGridPlayerController : public APlayerController
 public:
 	AGridPlayerController();
 
+	void HandlePlaceUnit();
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
 
 	void HandleSelectUnit();
 	void HandleMoveUnit();
+	void MovePlayerStepByStep();
 
 	void ShowMovementRange();
 	void ClearMovementRange();
@@ -45,4 +48,14 @@ protected:
 
 	UFUNCTION(BlueprintCallable)
 	void ShowUnitInfo();
+
+private:
+	TArray <FVector> PlayerPath;
+	int32 PCurrentStepIndex;
+	FTimerHandle PStepMoveTimer;
+	AUnitBase* PMovingUnit;
+
+
+
+	bool bIsMovementRangeVisible = false; // first hidden
 };
