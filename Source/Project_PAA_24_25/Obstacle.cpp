@@ -17,7 +17,7 @@ AObstacle::AObstacle()
 	if (ObstacleMeshAsset.Succeeded())
 	{
 		ObstacleMesh->SetStaticMesh(ObstacleMeshAsset.Object);
-		ObstacleMesh->SetWorldScale3D(FVector(0.5f, 0.5f, 0.1f));
+		ObstacleMesh->SetWorldScale3D(FVector(0.85f, 0.85f, 0.3f));
 	}
 	else
 	{

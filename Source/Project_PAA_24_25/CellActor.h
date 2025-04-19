@@ -30,10 +30,10 @@ public:
 	void HighlightCell(bool bHighlight);
 
 	UFUNCTION(BlueprintCallable)
-	void SetCellColor(FColor NewColor);
+	void SetCellColor(FLinearColor NewColor);
 
 	void ResetToOriginalColor();
 
 private:
-	FColor OriginalColor;
+	FLinearColor OriginalColor;
 };

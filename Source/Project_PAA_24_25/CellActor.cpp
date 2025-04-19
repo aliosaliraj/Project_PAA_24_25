@@ -3,6 +3,7 @@
 
 #include "CellActor.h"
 #include "Components/StaticMeshComponent.h"
+#include "DrawDebugHelpers.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Materials/MaterialInstanceDynamic.h"
 
@@ -15,7 +16,7 @@ ACellActor::ACellActor()
 	CellMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Cell Mesh"));
 	RootComponent = CellMesh;
 
-	OriginalColor = FColor::Black;
+	OriginalColor = FLinearColor(0.4f, 0.26f, 0.13f);
 
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> CubeMesh(TEXT("/Engine/BasicShapes/Cube"));
 
@@ -45,7 +46,12 @@ void ACellActor::BeginPlay()
 
 	int32 X = FMath::RoundToInt(GetActorLocation().X) / 100;
 	int32 Y = FMath::RoundToInt(GetActorLocation().Y) / 100;
-	OriginalColor = ((X + Y) % 2 == 0) ? FColor::Black : FColor::White;
+
+	FLinearColor LightBrown = FLinearColor(0.4f, 0.26f, 0.13f);  // Marrone chiaro
+	FLinearColor DarkBrown = FLinearColor(0.3f, 0.2f, 0.1f);     // Marrone scuro
+
+	OriginalColor = ((X + Y) % 2 == 0) ? LightBrown : DarkBrown;
+
 	ResetToOriginalColor();
 }
 
@@ -55,7 +61,7 @@ void ACellActor::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void ACellActor::SetCellColor(FColor NewColor)
+void ACellActor::SetCellColor(FLinearColor NewColor)
 {
 	UMaterialInstanceDynamic* DynamicMaterial = CellMesh->CreateAndSetMaterialInstanceDynamic(0);
 	if (DynamicMaterial)

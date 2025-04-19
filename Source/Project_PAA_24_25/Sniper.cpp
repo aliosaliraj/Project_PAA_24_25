@@ -7,15 +7,15 @@
 ASniper::ASniper()
 {
 	Health = 20;
-	MaxMovement = 3;
+	MaxMovement = 4; // one more to consent correct movement
 	AttackRange = 10;
 	DamageMin = 4;
 	DamageMax = 8;
-
-	static ConstructorHelpers::FClassFinder<UUnitInfoWidget> WidgetClass(TEXT("/Game/BlueprintClasses/UnitInfoWidget_BP.UnitInfoWidget_BP_C"));
+	/*
+	static ConstructorHelpers::FClassFinder<UUnitInfoWidget> WidgetClass(TEXT("/Game/BlueprintClasses/UnitInfoWidget_BPP.UnitInfoWidget_BPP_C"));
 	if (WidgetClass.Succeeded())
 	{
 		UnitInfoWidgetClass = WidgetClass.Class;
 	}
-	else UE_LOG(LogTemp, Warning, TEXT("Failed to find UnitInfoWidget_BP class for sniper."));
+	else UE_LOG(LogTemp, Warning, TEXT("Failed to find UnitInfoWidget_BPP class for sniper."));*/
 }

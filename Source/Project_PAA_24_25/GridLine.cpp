@@ -60,14 +60,13 @@ void AGridLine::GenerateGrid()
 
 				if ((x + y) % 2 == 0)
 				{
-					Cell->SetCellColor(FColor::Black);
+					Cell->SetCellColor(FLinearColor(0.4f, 0.26f, 0.13f)); // light brown
 				}
 				else
 				{
-					Cell->SetCellColor(FColor::White);
+					Cell->SetCellColor(FLinearColor(0.3f, 0.2f, 0.1f)); // dark brown
 				}
 			}
-
 		}
 	}
 	CreateGridWithObstacles();

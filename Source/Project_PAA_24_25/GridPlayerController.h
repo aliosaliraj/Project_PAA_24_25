@@ -5,11 +5,11 @@
 #include "CoreMinimal.h"
 #include "StrategyCamera.h"
 #include "UnitBase.h"
+#include "CellActor.h"
 #include "GameFramework/PlayerController.h"
 #include "GridPlayerController.generated.h"
 
 class AUnitBase;
-//class UUnitInfoWidget;
 
 UCLASS()
 class PROJECT_PAA_24_25_API AGridPlayerController : public APlayerController
@@ -19,43 +19,61 @@ class PROJECT_PAA_24_25_API AGridPlayerController : public APlayerController
 public:
 	AGridPlayerController();
 
-	void HandlePlaceUnit();
-
-protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
 
+	AUnitBase* SelectedUnit;
+
+	UFUNCTION(BlueprintCallable)
+	void RegisterUnitInfoWidget(UUnitInfoWidget* Widget);
+	
+	UFUNCTION(BlueprintCallable)
+	void UpdateAllUnitWidgets();
+
+	UFUNCTION(BlueprintCallable)
+	void HandlePlaceUnit();
+
+	UFUNCTION(BlueprintCallable)
 	void HandleSelectUnit();
+
+	UFUNCTION(BlueprintCallable)
 	void HandleMoveUnit();
+
+	UFUNCTION(BlueprintCallable)
 	void MovePlayerStepByStep();
 
+	UFUNCTION(BlueprintCallable)
 	void ShowMovementRange();
+
+	UFUNCTION(BlueprintCallable)
 	void ClearMovementRange();
 
 	UFUNCTION()
 	void HandleAttackUnit();
-
-	AUnitBase* SelectedUnit;
 
 	UPROPERTY()
 	AStrategyCamera* StrategyCamera;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
 	TSubclassOf<class UUnitInfoWidget> UnitInfoWidgetClass;
-
+	
 	UPROPERTY()
 	UUnitInfoWidget* UnitInfoWidget;
 
-	UFUNCTION(BlueprintCallable)
-	void ShowUnitInfo();
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+	TSubclassOf<class UTurnIndicatorWidget> TurnIndicatorWidgetClass;
+
+	UPROPERTY()
+	UTurnIndicatorWidget* TurnIndicatorWidget;
 
 private:
-	TArray <FVector> PlayerPath;
+	TMap <FVector, TArray <FVector>> MovementPaths;
+	TArray<FVector> PlayerPath;
+	TArray <ACellActor*> HighlightedCells;
 	int32 PCurrentStepIndex;
 	FTimerHandle PStepMoveTimer;
+	FTimerHandle TimerHandle;
 	AUnitBase* PMovingUnit;
-
-
 
 	bool bIsMovementRangeVisible = false; // first hidden
 };

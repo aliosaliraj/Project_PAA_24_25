@@ -38,6 +38,9 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Control")
     bool bIsPlayerControlled;
 
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Turn")
+    bool HasCompletedAction;
+
     UFUNCTION(BlueprintCallable)
     void ApplyDamage(int32 DamageAmount);
 
@@ -45,8 +48,6 @@ public:
     void CounterAttack(AUnitBase* Attacker);
 
     UFUNCTION(BlueprintCallable)
-    //void AttackTarget(AUnitBase* Target);
-
     void UpdateMaterial();
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)

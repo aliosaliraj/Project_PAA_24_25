@@ -8,7 +8,10 @@
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
 #include "Obstacle.h"
+#include "TurnIndicatorWidget.h"
 #include "TurnBasedGameMode.generated.h"
+
+//class UTurnIndicatorWidget;
 
 UENUM(BlueprintType)
 enum class ETurnState : uint8
@@ -57,16 +60,45 @@ public:
 	int32 GridSize = 25;
 
 	UPROPERTY(EditAnywhere, Category = "Units")
-	TSubclassOf<AUnitBase> PlayerUnitClass;
+	TSubclassOf<AUnitBase> PlayerSniperClass;
 
 	UPROPERTY(EditAnywhere, Category = "Units")
-	TSubclassOf<AUnitBase> EnemyUnitClass;
+	TSubclassOf<AUnitBase> PlayerBrawlerClass;
+
+	UPROPERTY(EditAnywhere, Category = "Units")
+	TSubclassOf<AUnitBase> EnemySniperClass;
+
+	UPROPERTY(EditAnywhere, Category = "Units")
+	TSubclassOf<AUnitBase> EnemyBrawlerClass;
+	
+	TArray<AUnitBase*> PlayerUnits;
+	TArray<AUnitBase*> EnemyUnits;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
+	TSubclassOf<class UTurnIndicatorWidget> TurnIndicatorWidgetClass;
+
+	UPROPERTY()
+	UTurnIndicatorWidget* TurnIndicatorWidget;
+
+	void RegisterTurnIndicatorWidget(UTurnIndicatorWidget* Widget);
 
 	UFUNCTION(BlueprintCallable)
 	void StartPlayerTurn();
 
 	UFUNCTION(BlueprintCallable)
 	void StartEnemyTurn();
+
+	UFUNCTION(BlueprintCallable)
+	void ExecuteEnemyAction();
+
+	UFUNCTION(BlueprintCallable)
+	AUnitBase* FindClosestPlayerUnit(AUnitBase* EnemyUnit);
+
+	UFUNCTION(BlueprintCallable)
+	bool CanAttackPlayerUnit(AUnitBase* EnemyUnit, AUnitBase* PlayerUnit);
+
+	UFUNCTION(BlueprintCallable)
+	void NextPlayerUnit();
 
 	UFUNCTION(BlueprintCallable)
 	void EndTurn();
@@ -92,14 +124,11 @@ private:
 
 	bool bIsPlayerStarting = false;
 	bool bIsPlayerPlacingUnits = true;
-	bool IsLocationFreeFromObstacles(FVector Location);
+	bool IsLocationValid(FVector Location);
 
 	int32 CurrentUnitPlacementIndex = 0;
 	int32 CurrentPlayerUnitIndex = 0;
 	int32 CurrentEnemyUnitIndex = 0;
-
-	TArray<AUnitBase*> PlayerUnits;
-	TArray<AUnitBase*> EnemyUnits;
 
 	FVector CalculateEnemyPlacementLocation();
 

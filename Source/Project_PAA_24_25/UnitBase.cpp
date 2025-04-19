@@ -2,6 +2,8 @@
 
 
 #include "UnitBase.h"
+#include "TurnBasedGameMode.h"
+#include "GridPlayerController.h"
 #include "UnitInfoWidget.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/StaticMeshComponent.h"
@@ -12,6 +14,8 @@ AUnitBase::AUnitBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	HasCompletedAction = false;
+
 	UnitMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Unit Mesh"));
 	RootComponent = UnitMesh;
 
@@ -20,7 +24,7 @@ AUnitBase::AUnitBase()
 	if (CylinderMesh.Succeeded())
 	{
 		UnitMesh->SetStaticMesh(CylinderMesh.Object);
-		UnitMesh->SetWorldScale3D(FVector(0.5f, 0.5f, 0.1f));
+		UnitMesh->SetWorldScale3D(FVector(0.85f, 0.85f, 0.3f));
 
 		static ConstructorHelpers::FObjectFinder<UMaterial> SniperPlayerMaterial(TEXT("/Game/Textures/SniperPlayerMat.SniperPlayerMat"));
 		static ConstructorHelpers::FObjectFinder<UMaterial> SniperEnemyMaterial(TEXT("/Game/Textures/SniperEnemyMat.SniperEnemyMat"));
@@ -88,13 +92,30 @@ void AUnitBase::Tick(float DeltaTime)
 
 void AUnitBase::ApplyDamage(int32 DamageAmount)
 {
+	CurrentDamage = DamageAmount;
 	Health -= DamageAmount;
 	UE_LOG(LogTemp, Warning, TEXT("%s took %d damage. Health now: %d"), *GetName(), DamageAmount, Health);
 
 	if (Health <= 0)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("%s has been destroyed."), *GetName());
-		Destroy();
+		
+		ATurnBasedGameMode* GameMode = Cast<ATurnBasedGameMode>(GetWorld()->GetAuthGameMode());
+		if (GameMode)
+		{
+			// Rimuovi l'unità dalla lista appropriata
+			if (bIsPlayerControlled)
+			{
+				GameMode->PlayerUnits.Remove(this);
+				UE_LOG(LogTemp, Warning, TEXT("Removed %s from PlayerUnits."), *GetName());
+			}
+			else
+			{
+				GameMode->EnemyUnits.Remove(this);
+				UE_LOG(LogTemp, Warning, TEXT("Removed %s from EnemyUnits."), *GetName());
+			}
+		}
+		SetLifeSpan(0.1f);
 	}
 }
 
@@ -118,16 +139,6 @@ void AUnitBase::CounterAttack(AUnitBase* Attacker)
 		UE_LOG(LogTemp, Warning, TEXT("Conditions not valid for counter-attack"));
 	}
 }
-
-/*
-void AUnitBase::AttackTarget(AUnitBase* Target)
-{
-	if (Target)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("%s is attacking %s for %d damage!"), *GetName(), *Target->GetName(), CurrentDamage);
-		Target->ApplyDamage(CurrentDamage);
-	}
-}*/
 
 void AUnitBase::UpdateMaterial()
 {
