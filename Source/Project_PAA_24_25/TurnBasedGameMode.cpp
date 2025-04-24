@@ -8,6 +8,7 @@
 #include "Sniper.h"
 #include "Brawler.h"
 #include "Obstacle.h"
+#include "GridLine.h"
 #include "TurnIndicatorWidget.h"
 #include "Engine/EngineTypes.h"
 #include "Components/PrimitiveComponent.h"
@@ -39,7 +40,7 @@ void ATurnBasedGameMode::BeginPlay()
 		TurnIndicatorWidget = CreateWidget<UTurnIndicatorWidget>(GetWorld(), TurnIndicatorWidgetClass);
 		if (TurnIndicatorWidget)
 		{
-			TurnIndicatorWidget->AddToViewport();
+			TurnIndicatorWidget->AddToViewport(1);
 		}
 		else
 		{
@@ -51,7 +52,7 @@ void ATurnBasedGameMode::BeginPlay()
 
 void ATurnBasedGameMode::CoinFlip()
 {
-	bIsPlayerStarting = FMath::RandBool(); // Randomizza chi inizia
+	bIsPlayerStarting = FMath::RandBool(); // Random starting player
 	CurrentTurn = bIsPlayerStarting ? ETurnState::PlayerTurn : ETurnState::EnemyTurn;
 
 	UE_LOG(LogTemp, Warning, TEXT("Coin Flip Result: %s starts first"), bIsPlayerStarting ? TEXT("Player") : TEXT("Enemy"));
@@ -60,11 +61,11 @@ void ATurnBasedGameMode::CoinFlip()
 	{
 		if (bIsPlayerStarting)
 		{
-			TurnIndicatorWidget->SetTurnText(TEXT("PLAYER TURN"));
+			TurnIndicatorWidget->SetTurnText(TEXT("Starts turn PLAYER"));
 		}
 		else
 		{
-			TurnIndicatorWidget->SetTurnText(TEXT("AI TURN"));
+			TurnIndicatorWidget->SetTurnText(TEXT("Starts turn AI"));
 		}
 	}
 	else
@@ -236,11 +237,6 @@ void ATurnBasedGameMode::StartGame()
 	}
 }
 
-void ATurnBasedGameMode::RegisterTurnIndicatorWidget(UTurnIndicatorWidget* Widget)
-{
-	TurnIndicatorWidget = Widget;	// to register widget directly in the gamemode
-}
-
 void ATurnBasedGameMode::StartPlayerTurn()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Player Turn Started"));
@@ -253,46 +249,12 @@ void ATurnBasedGameMode::StartPlayerTurn()
 
 	for (AUnitBase* Unit : PlayerUnits)
 	{
-		Unit->HasCompletedAction = false;
+		Unit->bCanMove = true;
+		Unit->bCanAttack = true;
+		Unit->bCanAttackAfterMove = false;
+		Unit->bHasCompletedAction = false;
 	}
-}
-
-void ATurnBasedGameMode::NextPlayerUnit()
-{
-	if (PlayerUnits.Num() == 0)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Nessuna unità giocatore disponibile."));
-		EndTurn();
-		return;
-	}
-
-	// Controlla se tutte le unità hanno completato le loro azioni
-	bool AllUnitsCompleted = true;
-
-	for (AUnitBase* Unit : PlayerUnits)
-	{
-		if (!Unit->HasCompletedAction)
-		{
-			AllUnitsCompleted = false;
-
-			UE_LOG(LogTemp, Warning, TEXT("Next player unit: %s"), *Unit->GetName());
-
-			// Lascia che il controller gestisca questa unità
-			AGridPlayerController* PlayerController = Cast<AGridPlayerController>(GetWorld()->GetFirstPlayerController());
-			if (PlayerController)
-			{
-				PlayerController->SelectedUnit = Unit;
-			}
-			PlayerController->ClearMovementRange();
-			return;
-		}
-	}
-
-	if (AllUnitsCompleted)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Tutte le unità del giocatore hanno completato il loro turno."));
-		EndTurn();
-	}
+	UE_LOG(LogTemp, Warning, TEXT("Player's units reset for a new turn."));
 }
 
 void ATurnBasedGameMode::StartEnemyTurn()
@@ -304,7 +266,6 @@ void ATurnBasedGameMode::StartEnemyTurn()
 	{
 		TurnIndicatorWidget->SetTurnText(TEXT("AI TURN"));
 	}
-
 	CurrentEnemyUnitIndex = 0;
 	ExecuteEnemyAction();
 }
@@ -338,10 +299,18 @@ void ATurnBasedGameMode::ExecuteEnemyAction()
 			ClosestPlayerUnit->ApplyDamage(CurrentDamage);
 			UE_LOG(LogTemp, Warning, TEXT("Enemy attacked player unit at X=%f, Y=%f"), ClosestPlayerUnit->GetActorLocation().X, ClosestPlayerUnit->GetActorLocation().Y);
 
+			// Update unit widget
+			AGridPlayerController* PlayerController = Cast<AGridPlayerController>(GetWorld()->GetFirstPlayerController());
+			if (PlayerController)
+			{
+				PlayerController->UpdateAllUnitWidgets();
+			}
+
 			// Counterattack
 			if (EnemyUnit->UnitType == EUnitType::Sniper)
 			{
 				ClosestPlayerUnit->CounterAttack(EnemyUnit);
+				PlayerController->UpdateAllUnitWidgets(); // Update widget again if counterattack
 			}
 
 			CurrentEnemyUnitIndex++;
@@ -447,17 +416,24 @@ bool ATurnBasedGameMode::CanAttackPlayerUnit(AUnitBase* EnemyUnit, AUnitBase* Pl
 
 void ATurnBasedGameMode::EndTurn()
 {
+	// Clear movement range in case is not already done
+	AGridPlayerController* PlayerController = Cast<AGridPlayerController>(GetWorld()->GetFirstPlayerController());
+	if (PlayerController)
+	{
+		PlayerController->ClearMovementRange();
+	}
+
+	// Change turn state
 	if (CurrentTurn == ETurnState::PlayerTurn)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Player turn completed. Switching to Enemy turn."));
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ATurnBasedGameMode::StartEnemyTurn, 2.0f, false);
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ATurnBasedGameMode::StartEnemyTurn, 0.5f, false);
 	}
 	else if (CurrentTurn == ETurnState::EnemyTurn)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Enemy turn completed. Switching to Player turn."));
 		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ATurnBasedGameMode::StartPlayerTurn, 1.0f, false);
 	}
-
 }
 
 TArray<FVector> ATurnBasedGameMode::FindPath(AUnitBase* Unit, FVector StartLocation, FVector TargetLocation, bool bIsPlayerControlled)
@@ -558,9 +534,8 @@ TArray<FVector> ATurnBasedGameMode::FindPath(AUnitBase* Unit, FVector StartLocat
 				continue;
 			}
 
-			if (ClosedList.Contains(NeighborPosition))
-				continue;
-
+			if (ClosedList.Contains(NeighborPosition)) continue;
+				
 			int32 NewGCost = CurrentNode->GCost + 1;
 
 			if (!OpenList.Contains(NeighborPosition))
@@ -602,24 +577,33 @@ TArray<FVector> ATurnBasedGameMode::FindPath(AUnitBase* Unit, FVector StartLocat
 	ClosedList.Empty();
 }
 
+void ATurnBasedGameMode::SetObstaclePositions(const TArray<FVector>& Positions)
+{
+	ObstaclePositions = Positions; // Update array with obstacle positions
+	UE_LOG(LogTemp, Warning, TEXT("Obstacle positions updated. Total obstacles: %d"), ObstaclePositions.Num());
+}
+
+
 bool ATurnBasedGameMode::IsValidMove(FVector Position, FVector TargetLocation, AUnitBase* Unit)
 {
 	FVector GridPosition = FVector(FMath::RoundToInt(Position.X / 100) * 100, FMath::RoundToInt(Position.Y / 100) * 100, Position.Z);
 	FVector TargetGridPosition = FVector(FMath::RoundToInt(TargetLocation.X / 100) * 100, FMath::RoundToInt(TargetLocation.Y / 100) * 100, TargetLocation.Z);
-	const float PositionTolerance = 5.0f;
 
-	// Controlla ostacoli sulla mappa
-	TArray<AActor*> OverlappingActors;
-	UKismetSystemLibrary::SphereOverlapActors(GetWorld(), GridPosition, 50.0f, TArray<TEnumAsByte<EObjectTypeQuery>>(), AObstacle::StaticClass(), TArray<AActor*>(), OverlappingActors);
-
-	if (OverlappingActors.Num() > 0)
+	// Check if inside the grid
+	if (GridPosition.X < 0 || GridPosition.X >= GridSize * 100 || GridPosition.Y < 0 || GridPosition.Y >= GridSize * 100)
 	{
-		//UE_LOG(LogTemp, Warning, TEXT("Obstacle detected at X=%f Y=%f"), GridPosition.X, GridPosition.Y);
+		//UE_LOG(LogTemp, Warning, TEXT("Position out of bounds! X=%f Y=%f"), GridPosition.X, GridPosition.Y);
 		return false;
 	}
 
+	// Check if blocked by an obstacle
+	if (ObstaclePositions.Contains(GridPosition))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Position blocked by obstacle at X=%f Y=%f"), GridPosition.X, GridPosition.Y);
+		return false;
+	}
 
-	// Controlla unità bloccanti (PlayerUnits e EnemyUnits)
+	// Check blocking units (PlayerUnits and EnemyUnits)
 	for (AUnitBase* BlockingUnit : PlayerUnits)
 	{
 		if (BlockingUnit && FVector::Dist(BlockingUnit->GetActorLocation(), GridPosition) <= 50.0f)
@@ -643,7 +627,6 @@ bool ATurnBasedGameMode::IsValidMove(FVector Position, FVector TargetLocation, A
 			return false;
 		}
 	}
-
 	return true;
 }
 

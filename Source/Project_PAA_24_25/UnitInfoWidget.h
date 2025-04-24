@@ -56,7 +56,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
 	class UTextBlock* EBrawlerDamage;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	class UScrollBox* MoveHistoryScrollBox;
+
 	// Function to update the unit widget based on the unit type
 	UFUNCTION(BlueprintCallable, Category = "UI")
-	void UpdateUnitInfo(const FString& UnitName, int32 UnitDamage, int32 UnitHealth, int32 UnitIndex);
+	void UpdateUnitInfo(int32 UnitDamage, int32 UnitHealth, int32 UnitIndex);
 };

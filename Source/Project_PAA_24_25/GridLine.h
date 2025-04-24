@@ -27,6 +27,8 @@ public:
 	void GenerateGrid();
 	void CreateGridWithObstacles();
 	void SpawnObstaclesAtLocation(const FVector& Location, bool bisTree);
+	
+	TArray<FVector> ObstaclePositions;
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Gridline")

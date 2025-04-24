@@ -80,8 +80,6 @@ public:
 	UPROPERTY()
 	UTurnIndicatorWidget* TurnIndicatorWidget;
 
-	void RegisterTurnIndicatorWidget(UTurnIndicatorWidget* Widget);
-
 	UFUNCTION(BlueprintCallable)
 	void StartPlayerTurn();
 
@@ -98,23 +96,25 @@ public:
 	bool CanAttackPlayerUnit(AUnitBase* EnemyUnit, AUnitBase* PlayerUnit);
 
 	UFUNCTION(BlueprintCallable)
-	void NextPlayerUnit();
-
-	UFUNCTION(BlueprintCallable)
 	void EndTurn();
 
 	UFUNCTION(BlueprintCallable)
 	void SpawnUnits();
 
 	UFUNCTION(BlueprintCallable)
-	TArray<FVector> FindPath(AUnitBase* Unit, FVector StartLocation, FVector TargetLocation, bool bIsPlayerControlled);
-
 	void MoveStepByStep();
 
+	UFUNCTION(BlueprintCallable)
 	void CoinFlip();
 
+	UFUNCTION(BlueprintCallable)
 	void HandlePlayerUnitPlacement(FVector ChosenLocation);
 
+	UFUNCTION(BlueprintCallable)
+	void SetObstaclePositions(const TArray<FVector>& Positions);
+
+	TArray<FVector> ObstaclePositions;
+	TArray<FVector> FindPath(AUnitBase* Unit, FVector StartLocation, FVector TargetLocation, bool bIsPlayerControlled);
 
 private:
 	TArray<FVector> Path;

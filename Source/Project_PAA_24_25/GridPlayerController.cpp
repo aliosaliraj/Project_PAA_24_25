@@ -61,78 +61,19 @@ void AGridPlayerController::BeginPlay()
 
 			SetViewTargetWithBlend(StrategyCamera, 0.5f);
 		}
-
-		if (!UnitInfoWidgetClass)
-		{
-			UE_LOG(LogTemp, Error, TEXT("UnitInfoWidgetClass is not set in Controller gameplay"));
-			return;
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("UnitInfoWidgetClass is set to: %s"), *UnitInfoWidgetClass->GetName());
-		}
-
-		UnitInfoWidget = CreateWidget<UUnitInfoWidget>(GetWorld(), UnitInfoWidgetClass);
-		if (UnitInfoWidget)
-		{
-			UnitInfoWidget->AddToViewport();
-			UnitInfoWidget->SetVisibility(ESlateVisibility::Visible);
-
-			//RegisterUnitInfoWidget(UnitInfoWidget);
-
-			UpdateAllUnitWidgets();
-			UE_LOG(LogTemp, Warning, TEXT("UnitInfoWidget successfully created and added to viewport"));
-		}
-		else
-		{
-			UE_LOG(LogTemp, Error, TEXT("Failed to create UnitInfoWidget"));
-		}
-
-		if (!IsValid(UnitInfoWidget))
-		{
-			UE_LOG(LogTemp, Error, TEXT("UnitInfoWidget is not valid after BeginPlay initialization"));
-		}
-		
-		if (TurnIndicatorWidgetClass)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("TurnIndicatorWidgetClass is set to: %s"), *TurnIndicatorWidgetClass->GetName());
-
-			TurnIndicatorWidget = CreateWidget<UTurnIndicatorWidget>(GetWorld(), TurnIndicatorWidgetClass);
-			if (TurnIndicatorWidget)
-			{
-				TurnIndicatorWidget->AddToViewport();
-				TurnIndicatorWidget->SetTurnText(TEXT("STARTING COIN FLIP"));
-				/*
-				// Register widget in GameMode
-				ATurnBasedGameMode* GameMode = Cast<ATurnBasedGameMode>(GetWorld()->GetAuthGameMode());
-				if (GameMode)
-				{
-					GameMode->RegisterTurnIndicatorWidget(TurnIndicatorWidget);
-				}*/
-			}
-		}
-		else
-		{
-			UE_LOG(LogTemp, Error, TEXT("TurnIndicatorWidgetClass is not set"));
-		}
 	}
-}
-
-void AGridPlayerController::RegisterUnitInfoWidget(UUnitInfoWidget* Widget)
-{
-	UnitInfoWidget = Widget;
 }
 
 void AGridPlayerController::UpdateAllUnitWidgets()
 {
-	// I fwidget not found create a new one
+	// If widget not found create a new one
 	if (!IsValid(UnitInfoWidget))
 	{
 		UE_LOG(LogTemp, Error, TEXT("UnitInfoWidget is not valid during UpdateAllUnitWidgets - Recreating"));
 		UnitInfoWidget = CreateWidget<UUnitInfoWidget>(GetWorld(), UnitInfoWidgetClass);
 		if (UnitInfoWidget)
 		{
-			UnitInfoWidget->AddToViewport();
+			UnitInfoWidget->AddToViewport(0);
 			UnitInfoWidget->SetVisibility(ESlateVisibility::Visible);
 			UE_LOG(LogTemp, Warning, TEXT("UnitInfoWidget recreated in update"));
 		}
@@ -155,7 +96,7 @@ void AGridPlayerController::UpdateAllUnitWidgets()
 		AUnitBase* Unit = GameMode->PlayerUnits[Index];
 		if (Unit && UnitInfoWidget)
 		{
-			UnitInfoWidget->UpdateUnitInfo(Unit->GetName(), Unit->CurrentDamage, Unit->Health, Index);
+			UnitInfoWidget->UpdateUnitInfo(Unit->CurrentDamage, Unit->Health, Index);
 		}
 		else
 		{
@@ -168,7 +109,7 @@ void AGridPlayerController::UpdateAllUnitWidgets()
 		AUnitBase* Unit = GameMode->EnemyUnits[Index];
 		if (Unit && UnitInfoWidget)
 		{
-			UnitInfoWidget->UpdateUnitInfo(Unit->GetName(), Unit->CurrentDamage, Unit->Health, Index + 2);
+			UnitInfoWidget->UpdateUnitInfo(Unit->CurrentDamage, Unit->Health, Index + 2);
 		}
 		else
 		{
@@ -207,6 +148,7 @@ void AGridPlayerController::SetupInputComponent()
 	InputComponent->BindAction("PlaceUnit", IE_Pressed, this, &AGridPlayerController::HandlePlaceUnit);		// left click to place player unit
 	InputComponent->BindAction("MoveUnit", IE_Pressed, this, &AGridPlayerController::HandleMoveUnit);		// right click to move player unit
 	InputComponent->BindAction("AttackUnit", IE_Pressed, this, &AGridPlayerController::HandleAttackUnit);	// right click to attack enemy unit
+	InputComponent->BindAction("EndTurn", IE_Pressed, this, &AGridPlayerController::HandleEndTurn);			// "End-Turn" button
 }
 
 void AGridPlayerController::HandleSelectUnit()
@@ -220,33 +162,22 @@ void AGridPlayerController::HandleSelectUnit()
 		if (IsValid(HitResult.GetActor()))
 		{
 			AUnitBase* HitUnit = Cast<AUnitBase>(HitResult.GetActor());
-			if (IsValid(HitUnit) && HitUnit->bIsPlayerControlled && !HitUnit->HasCompletedAction)
+			if (IsValid(HitUnit) && HitUnit->bIsPlayerControlled && HitUnit->bCanAttack)
 			{
-				// Check if selected unit is already selected
-				if (SelectedUnit == HitUnit)
+				SelectedUnit = HitUnit;
+				ClearMovementRange();
+				ShowMovementRange();
+				UE_LOG(LogTemp, Warning, TEXT("Unit selected: %s"), *HitUnit->GetName());
+
+				if (SelectedUnit && SelectedUnit != HitUnit && !SelectedUnit->bHasCompletedAction)
 				{
-					// Alternate between showing and hiding movement range
-					if (bIsMovementRangeVisible)
+					UE_LOG(LogTemp, Warning, TEXT("Before condition for unit:%s, bCanMove=%d, bCanAttack=%d"), *SelectedUnit->GetName(), SelectedUnit->bCanMove, SelectedUnit->bCanAttack);
+					UE_LOG(LogTemp, Warning, TEXT("bHasCompletedAction=%d"), SelectedUnit->bHasCompletedAction);
+					if (SelectedUnit->bCanMove || SelectedUnit->bCanAttack) // Controlliamo se almeno una azione è stata eseguita
 					{
-						ClearMovementRange(); // Hide range
-						bIsMovementRangeVisible = false;
-						UE_LOG(LogTemp, Warning, TEXT("Movement range hidden for unit: %s"), *HitUnit->GetName());
+						UE_LOG(LogTemp, Warning, TEXT("You must complete at least one action before selecting another unit."));
+						return;
 					}
-					else
-					{
-						ShowMovementRange(); // Show range
-						bIsMovementRangeVisible = true;
-						UE_LOG(LogTemp, Warning, TEXT("Movement range displayed for unit: %s"), *HitUnit->GetName());
-					}
-				}
-				else
-				{
-					// Change selected unit
-					SelectedUnit = HitUnit;
-					ClearMovementRange(); // Hide previous range
-					ShowMovementRange(); // Show new range
-					bIsMovementRangeVisible = false;
-					UE_LOG(LogTemp, Warning, TEXT("Unit changed: %s"), *HitUnit->GetName());
 				}
 			}
 			else
@@ -349,6 +280,12 @@ void AGridPlayerController::HandleMoveUnit()
 		return;
 	}
 
+	if (!SelectedUnit->bCanMove)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Unit cannot move"));
+		return;
+	}
+
 	FHitResult HitResult;
 	GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, false, HitResult);
 
@@ -371,21 +308,18 @@ void AGridPlayerController::HandleMoveUnit()
 
 				// Aggiorna il widget delle informazioni dell'unità
 				UE_LOG(LogTemp, Warning, TEXT("Calling UpdateAllUnitWidgets after move"));
-				//UpdateAllUnitWidgets();
-				GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AGridPlayerController::UpdateAllUnitWidgets, 0.9f, false);
+				UpdateAllUnitWidgets();
 
-				ClearMovementRange();
-				SelectedUnit->HasCompletedAction = true;
+				//ClearMovementRange();
+				SelectedUnit->bCanMove = false; // Deny further movement
+				SelectedUnit->bCanAttackAfterMove = true; // Allow attack after move
+				SelectedUnit->bHasCompletedAction = true; // Set action completed
 
-				ATurnBasedGameMode* GameMode = Cast<ATurnBasedGameMode>(GetWorld()->GetAuthGameMode());
-				if (GameMode)
-				{
-					GameMode->NextPlayerUnit();
-				}
-			}
-			else
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Target location out of range"));
+				UE_LOG(LogTemp, Warning, TEXT("bCanMove: %d, bHasCompletedAction: %d"), SelectedUnit->bCanMove, SelectedUnit->bHasCompletedAction);
+
+				ClearMovementRange(); // Clear movement range after moving
+
+				UE_LOG(LogTemp, Warning, TEXT("Unit moved, attack enabled"));
 			}
 		}
 		else
@@ -432,8 +366,14 @@ void AGridPlayerController::HandleAttackUnit()
 		return;
 	}
 
-	ATurnBasedGameMode* CurrentGameMode = Cast<ATurnBasedGameMode>(GetWorld()->GetAuthGameMode());
-	if (CurrentGameMode && CurrentGameMode->CurrentTurn != ETurnState::PlayerTurn)
+	if ((!SelectedUnit->bCanAttack && !SelectedUnit->bCanAttackAfterMove))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Unit cannot attack"));
+		return;
+	}
+	
+	ATurnBasedGameMode* GameMode = Cast<ATurnBasedGameMode>(GetWorld()->GetAuthGameMode());
+	if (GameMode && GameMode->CurrentTurn != ETurnState::PlayerTurn)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Not player turn"));
 		return;
@@ -452,7 +392,7 @@ void AGridPlayerController::HandleAttackUnit()
 	{
 		AUnitBase* TargetUnit = Cast<AUnitBase>(HitResult.GetActor());
 
-		if (IsValid(TargetUnit) && TargetUnit != SelectedUnit && !TargetUnit->bIsPlayerControlled)
+		if (TargetUnit && TargetUnit != SelectedUnit && !TargetUnit->bIsPlayerControlled)
 		{
 			int32 Distance = FMath::Abs(TargetUnit->GetActorLocation().X - SelectedUnit->GetActorLocation().X) / 100 + FMath::Abs(TargetUnit->GetActorLocation().Y - SelectedUnit->GetActorLocation().Y) / 100;
 
@@ -460,30 +400,25 @@ void AGridPlayerController::HandleAttackUnit()
 			{
 				int32 CurrentDamage = FMath::RandRange(SelectedUnit->DamageMin, SelectedUnit->DamageMax);
 				TargetUnit->ApplyDamage(CurrentDamage);
-				SelectedUnit->HasCompletedAction = true;
+
+				SelectedUnit->bCanAttack = false;
+				SelectedUnit->bCanAttackAfterMove = false;
+				SelectedUnit->bHasCompletedAction = true; // Set action completed
+
+				UE_LOG(LogTemp, Warning, TEXT("Unit attacked and actions completed"));
 
 				// Update the widget after attack
 				UE_LOG(LogTemp, Warning, TEXT("Updating unit widgets after attack"));
-				//UpdateAllUnitWidgets();
-				GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AGridPlayerController::UpdateAllUnitWidgets, 0.9f, false);
-
-				//UE_LOG(LogTemp, Warning, TEXT("Attacking %s for %d damage"), *TargetUnit->GetName(), CurrentDamage);
+				UpdateAllUnitWidgets();
 
 				if (SelectedUnit->UnitType == EUnitType::Sniper)
 				{
 					TargetUnit->CounterAttack(SelectedUnit);
+					UpdateAllUnitWidgets();
 				}
 				ClearMovementRange();
 
-				ATurnBasedGameMode* GameMode = Cast<ATurnBasedGameMode>(GetWorld()->GetAuthGameMode());
-				if (GameMode)
-				{
-					GameMode->NextPlayerUnit();
-				}
-				else
-				{
-					UE_LOG(LogTemp, Warning, TEXT("Game mode not found"))
-				}
+				HandleNextUnit();
 			}
 			else
 			{
@@ -499,5 +434,33 @@ void AGridPlayerController::HandleAttackUnit()
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Invalid hit result"));
+	}
+}
+
+void AGridPlayerController::HandleNextUnit()
+{
+	ATurnBasedGameMode* GameMode = Cast<ATurnBasedGameMode>(GetWorld()->GetAuthGameMode());
+	if (!GameMode)
+		return;
+
+	for (AUnitBase* Unit : GameMode->PlayerUnits)
+	{
+		if (!Unit->bHasCompletedAction) // Find available unit
+		{
+			SelectedUnit = Unit;
+			ShowMovementRange();
+			UE_LOG(LogTemp, Warning, TEXT("Switching to next unit: %s"), *SelectedUnit->GetName());
+			return;
+		}
+	}
+}
+
+
+void AGridPlayerController::HandleEndTurn()
+{
+	ATurnBasedGameMode* GameMode = Cast<ATurnBasedGameMode>(GetWorld()->GetAuthGameMode());
+	if (GameMode)
+	{
+		GameMode->EndTurn(); // Change turn
 	}
 }

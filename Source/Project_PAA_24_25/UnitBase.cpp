@@ -14,8 +14,6 @@ AUnitBase::AUnitBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	HasCompletedAction = false;
-
 	UnitMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Unit Mesh"));
 	RootComponent = UnitMesh;
 
@@ -98,7 +96,19 @@ void AUnitBase::ApplyDamage(int32 DamageAmount)
 
 	if (Health <= 0)
 	{
+		Health = 0;
 		UE_LOG(LogTemp, Warning, TEXT("%s has been destroyed."), *GetName());
+
+		// Update widget before eliminating the unit
+		AGridPlayerController* PlayerController = Cast<AGridPlayerController>(GetWorld()->GetFirstPlayerController());
+		if (PlayerController)
+		{
+			PlayerController->UpdateAllUnitWidgets();
+		}
+		else 
+		{
+			UE_LOG(LogTemp, Error, TEXT("PlayerController not found in ApplyDamage"));
+		}
 		
 		ATurnBasedGameMode* GameMode = Cast<ATurnBasedGameMode>(GetWorld()->GetAuthGameMode());
 		if (GameMode)

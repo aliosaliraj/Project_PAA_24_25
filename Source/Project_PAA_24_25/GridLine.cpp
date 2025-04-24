@@ -4,6 +4,7 @@
 #include "GridLine.h"
 #include "CellActor.h"
 #include "Obstacle.h"
+#include "TurnBasedGameMode.h"
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
 #include "Engine/EngineTypes.h"
@@ -76,9 +77,8 @@ void AGridLine::CreateGridWithObstacles()
 {
 	int32 NumCells = GridSize * GridSize;
 	int32 NumObstacles = FMath::RoundToInt(NumCells * 0.1f);	//obstacles percent (10)
-
-	int32 NumTrees = FMath::RoundToInt(NumObstacles * TreePercentage);
-	int32 NumMountains = NumObstacles - NumTrees;
+	int32 NumTrees = FMath::RoundToInt(NumObstacles * TreePercentage);  // trees number 
+	int32 NumMountains = NumObstacles - NumTrees;  // mountains number
 
 	UE_LOG(LogTemp, Warning, TEXT("NumObstacles: %d, NumTrees: %d, NumMountains: %d"), NumObstacles, NumTrees, NumMountains);
 
@@ -94,59 +94,59 @@ void AGridLine::CreateGridWithObstacles()
 		}
 	}
 
-	for (int32 x = 0; x < GridSize; x++)
+	while (NumObstacles > 0)
 	{
-		for (int32 y = 0; y < GridSize; y++)
+		if (NumObstacles <= 0)
 		{
-			if (NumObstacles <= 0)
-			{
-				UE_LOG(LogTemp, Warning, TEXT("NumObstacles <= 0"));
-				return;
-			}
-
-			if (FMath::RandRange(0, NumCells) < NumObstacles)
-			{
-				FVector Location = FVector(x * CellSize, y * CellSize, 0);
-
-				// Checks if is cell is connected or not
-				Grid[x][y] = true; // Starts setting cell occuped
-				if (!IsGridFullyConnected(Grid))
-				{
-					Grid[x][y] = false; // if not connected sets it free
-					continue;
-				}
-
-				// Sets mountain/tree casually
-				bool bTree = false;
-
-				if (NumTrees > 0 && NumMountains > 0)
-				{
-					bTree = FMath::RandBool();
-				}
-				else if (NumTrees > 0)
-				{
-					bTree = true; // Tree if NumTrees > 0
-				}
-				else
-				{
-					bTree = false; // Mountain otherwise
-				}
-
-				SpawnObstaclesAtLocation(Location, bTree);
-
-				if (bTree)
-				{
-					NumTrees--;
-				}
-				else
-				{
-					NumMountains--;
-				}
-
-				--NumObstacles;
-
-			}
+			UE_LOG(LogTemp, Warning, TEXT("NumObstacles <= 0"));
+			return;
 		}
+
+		int32 x = FMath::RandRange(0, GridSize - 1);
+		int32 y = FMath::RandRange(0, GridSize - 1);
+
+		FVector Location = FVector(x * CellSize, y * CellSize, 0);
+
+		// Check if the cell is already occupied
+		if (Grid[x][y])
+		{
+			continue;
+		}
+
+		// Checks if is cell is connected or not
+		Grid[x][y] = true; // Starts setting cell occuped
+		if (!IsGridFullyConnected(Grid))
+		{
+			Grid[x][y] = false; // if not connected sets it free
+			continue;
+		}
+
+		// Sets mountain/tree casually
+		bool bTree = false;
+		if (NumTrees > 0 && NumMountains > 0)
+		{
+			bTree = FMath::RandBool();
+		}
+		else if (NumTrees > 0)
+		{
+			bTree = true; // Tree if NumTrees > 0
+		}
+		else
+		{
+			bTree = false; // Mountain otherwise
+		}
+
+		SpawnObstaclesAtLocation(Location, bTree);
+
+		if (bTree)
+		{
+			NumTrees--;
+		}
+		else
+		{
+			NumMountains--;
+		}
+		--NumObstacles;
 	}
 }
 
@@ -156,6 +156,13 @@ void AGridLine::SpawnObstaclesAtLocation(const FVector& Location, bool bIsTree)
 	if (NewObstacle)
 	{
 		NewObstacle->SetMaterial(bIsTree);
+		ObstaclePositions.Add(Location);	// Store location of obstacle in the array
+	}
+	// Pass obstacle positions to the game mode
+	ATurnBasedGameMode* GameMode = Cast<ATurnBasedGameMode>(GetWorld()->GetAuthGameMode());
+	if (GameMode)
+	{
+		GameMode->SetObstaclePositions(ObstaclePositions);
 	}
 }
 

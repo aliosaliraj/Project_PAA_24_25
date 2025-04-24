@@ -12,8 +12,8 @@ class UUnitInfoWidget;
 UENUM(BlueprintType)
 enum class EUnitType : uint8
 {
-    Sniper UMETA(DisplayName = "Sniper"),
-    Brawler UMETA(DisplayName = "Brawler")
+    Sniper UMETA(DisplayName = "S"),
+    Brawler UMETA(DisplayName = "B")
 };
 
 UCLASS()
@@ -38,8 +38,17 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Control")
     bool bIsPlayerControlled;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Turn")
+	bool bHasCompletedAction = false;                                      // unit has completed its action for the turn
+
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Turn")
-    bool HasCompletedAction;
+    bool bCanMove = true;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Turn")
+    bool bCanAttack = true;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Turn")
+    bool bCanAttackAfterMove = false;                                       // unit can attack only after has moved
 
     UFUNCTION(BlueprintCallable)
     void ApplyDamage(int32 DamageAmount);

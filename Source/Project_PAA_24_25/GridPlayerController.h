@@ -6,6 +6,7 @@
 #include "StrategyCamera.h"
 #include "UnitBase.h"
 #include "CellActor.h"
+#include "TurnIndicatorWidget.h"
 #include "GameFramework/PlayerController.h"
 #include "GridPlayerController.generated.h"
 
@@ -23,9 +24,6 @@ public:
 	virtual void SetupInputComponent() override;
 
 	AUnitBase* SelectedUnit;
-
-	UFUNCTION(BlueprintCallable)
-	void RegisterUnitInfoWidget(UUnitInfoWidget* Widget);
 	
 	UFUNCTION(BlueprintCallable)
 	void UpdateAllUnitWidgets();
@@ -48,8 +46,14 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ClearMovementRange();
 
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void HandleAttackUnit();
+
+	UFUNCTION(BlueprintCallable)
+	void HandleNextUnit();
+
+	UFUNCTION(BlueprintCallable)
+	void HandleEndTurn();
 
 	UPROPERTY()
 	AStrategyCamera* StrategyCamera;
