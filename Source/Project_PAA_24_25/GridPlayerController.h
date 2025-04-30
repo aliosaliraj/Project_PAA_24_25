@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -24,6 +22,13 @@ public:
 	virtual void SetupInputComponent() override;
 
 	AUnitBase* SelectedUnit;
+	TArray<ACellActor*> GridCells;
+
+	TArray <ACellActor*> HighlightedCells;
+	TArray <ACellActor*> AttackCells;
+
+	UFUNCTION(BlueprintCallable)
+	void InitializeGridCells();
 	
 	UFUNCTION(BlueprintCallable)
 	void UpdateAllUnitWidgets();
@@ -35,6 +40,9 @@ public:
 	void HandleSelectUnit();
 
 	UFUNCTION(BlueprintCallable)
+	ACellActor* FindCellUnderUnit(FVector UnitLocation);
+
+	UFUNCTION(BlueprintCallable)
 	void HandleMoveUnit();
 
 	UFUNCTION(BlueprintCallable)
@@ -44,7 +52,7 @@ public:
 	void ShowMovementRange();
 
 	UFUNCTION(BlueprintCallable)
-	void ClearMovementRange();
+	void ClearMovementRange(bool bMovementOrAttack);
 
 	UFUNCTION(BlueprintCallable)
 	void HandleAttackUnit();
@@ -54,6 +62,15 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void HandleEndTurn();
+
+	UFUNCTION(BlueprintCallable)
+	void StoreMove(FVector TargetLocation);
+
+	UFUNCTION(BlueprintCallable)
+	void StoreAttack(AUnitBase* AttackingUnit, AUnitBase* TargetUnit, int32 CurrentDamage);
+
+	UFUNCTION(BlueprintCallable)
+	void DisablePlayerInput();
 
 	UPROPERTY()
 	AStrategyCamera* StrategyCamera;
@@ -73,11 +90,11 @@ public:
 private:
 	TMap <FVector, TArray <FVector>> MovementPaths;
 	TArray<FVector> PlayerPath;
-	TArray <ACellActor*> HighlightedCells;
 	int32 PCurrentStepIndex;
 	FTimerHandle PStepMoveTimer;
 	FTimerHandle TimerHandle;
 	AUnitBase* PMovingUnit;
+	ACellActor* CurrentlyHighlightedCell;
 
 	bool bIsMovementRangeVisible = false; // first hidden
 };

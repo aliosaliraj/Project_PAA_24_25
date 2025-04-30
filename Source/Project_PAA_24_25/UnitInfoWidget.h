@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -27,16 +25,10 @@ public:
 	class UTextBlock* PSniperHealth;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
-	class UTextBlock* PSniperDamage;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
 	class UTextBlock* PBrawlerName;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
 	class UTextBlock* PBrawlerHealth;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
-	class UTextBlock* PBrawlerDamage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
 	class UTextBlock* ESniperName;
@@ -45,21 +37,19 @@ public:
 	class UTextBlock* ESniperHealth;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
-	class UTextBlock* ESniperDamage;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
 	class UTextBlock* EBrawlerName;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
 	class UTextBlock* EBrawlerHealth;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
-	class UTextBlock* EBrawlerDamage;
+	class UScrollBox* HistoryScrollBox;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
-	class UScrollBox* MoveHistoryScrollBox;
-
-	// Function to update the unit widget based on the unit type
+	// Updates the unit Widget
 	UFUNCTION(BlueprintCallable, Category = "UI")
-	void UpdateUnitInfo(int32 UnitDamage, int32 UnitHealth, int32 UnitIndex);
+	void UpdateUnitInfo(const FString& UnitRole, int32 UnitHealth);
+
+	// Updates the History
+	UFUNCTION(BlueprintCallable, Category = "UI")
+	void UpdateHistory(const TArray<FString>& History);
 };

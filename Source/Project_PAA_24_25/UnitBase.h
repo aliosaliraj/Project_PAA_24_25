@@ -12,8 +12,8 @@ class UUnitInfoWidget;
 UENUM(BlueprintType)
 enum class EUnitType : uint8
 {
-    Sniper UMETA(DisplayName = "S"),
-    Brawler UMETA(DisplayName = "B")
+    Sniper UMETA(DisplayName = "SNIPER"),
+    Brawler UMETA(DisplayName = "BRAWLER")
 };
 
 UCLASS()
@@ -30,25 +30,31 @@ protected:
     virtual void BeginPlay() override;
 
 public:
-    virtual void Tick(float DeltaTime) override;
+    FString GetUnitType() const;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Unit")
     EUnitType UnitType;
+
+    UPROPERTY(BlueprintReadWrite, Category = "Unit")
+    FString UnitRole;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Control")
     bool bIsPlayerControlled;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Turn")
-	bool bHasCompletedAction = false;                                      // unit has completed its action for the turn
+	bool bHasCompletedAction = false;                                       // unit has completed its action for the turn
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Turn")
-    bool bCanMove = true;
+	bool bCanMove = true;											        // unit can move
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Turn")
-    bool bCanAttack = true;
+    bool bCanAttack = true;                                                 // unit can attack
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Turn")
     bool bCanAttackAfterMove = false;                                       // unit can attack only after has moved
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Placement")
+	bool bIsPlaced = false;                                                 // unit is placed on the grid
 
     UFUNCTION(BlueprintCallable)
     void ApplyDamage(int32 DamageAmount);

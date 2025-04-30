@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "GridLine.h"
 #include "CellActor.h"
 #include "Obstacle.h"
@@ -12,19 +9,13 @@
 #include "WorldCollision.h"
 #include "Components/PrimitiveComponent.h"
 
-// Sets default values
 AGridLine::AGridLine()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
 	ObstacleClass = AObstacle::StaticClass();
-	if (!ObstacleClass)
-	{
-		UE_LOG(LogTemp, Error, TEXT("Failed to find Obstacle class"));
-	}
 }
 
-// Called when the game starts or when spawned
 void AGridLine::BeginPlay()
 {
 	Super::BeginPlay();
@@ -33,16 +24,6 @@ void AGridLine::BeginPlay()
 	{
 		GenerateGrid();
 	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("GenerateGrid error in BeginPlay"));
-	}
-}
-
-// Called every frame
-void AGridLine::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
 }
 
 void AGridLine::GenerateGrid()
@@ -61,11 +42,11 @@ void AGridLine::GenerateGrid()
 
 				if ((x + y) % 2 == 0)
 				{
-					Cell->SetCellColor(FLinearColor(0.4f, 0.26f, 0.13f)); // light brown
+					Cell->SetCellColor(FLinearColor(0.4f, 0.26f, 0.13f));	// light brown
 				}
 				else
 				{
-					Cell->SetCellColor(FLinearColor(0.3f, 0.2f, 0.1f)); // dark brown
+					Cell->SetCellColor(FLinearColor(0.3f, 0.2f, 0.1f));		// dark brown
 				}
 			}
 		}
@@ -76,11 +57,9 @@ void AGridLine::GenerateGrid()
 void AGridLine::CreateGridWithObstacles()
 {
 	int32 NumCells = GridSize * GridSize;
-	int32 NumObstacles = FMath::RoundToInt(NumCells * 0.1f);	//obstacles percent (10)
+	int32 NumObstacles = FMath::RoundToInt(NumCells * 0.1f);			//obstacles percent (10)
 	int32 NumTrees = FMath::RoundToInt(NumObstacles * TreePercentage);  // trees number 
-	int32 NumMountains = NumObstacles - NumTrees;  // mountains number
-
-	UE_LOG(LogTemp, Warning, TEXT("NumObstacles: %d, NumTrees: %d, NumMountains: %d"), NumObstacles, NumTrees, NumMountains);
+	int32 NumMountains = NumObstacles - NumTrees;						// mountains number
 
 	// 2D rappresentation of grid
 	TArray<TArray<bool>> Grid;
@@ -98,7 +77,6 @@ void AGridLine::CreateGridWithObstacles()
 	{
 		if (NumObstacles <= 0)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("NumObstacles <= 0"));
 			return;
 		}
 
@@ -113,11 +91,17 @@ void AGridLine::CreateGridWithObstacles()
 			continue;
 		}
 
+		// Cell (0, 0), (24, 0) are not allowed because they are the spawn points and interfere with unit positioning
+		if ((x == 0 && y == 0) || (x == (GridSize - 1) && y == 0))
+		{
+			continue;
+		}
+
 		// Checks if is cell is connected or not
-		Grid[x][y] = true; // Starts setting cell occuped
+		Grid[x][y] = true;				// Starts setting cell occuped
 		if (!IsGridFullyConnected(Grid))
 		{
-			Grid[x][y] = false; // if not connected sets it free
+			Grid[x][y] = false;			// if not connected sets it free
 			continue;
 		}
 
@@ -129,11 +113,11 @@ void AGridLine::CreateGridWithObstacles()
 		}
 		else if (NumTrees > 0)
 		{
-			bTree = true; // Tree if NumTrees > 0
+			bTree = true;				// Tree if NumTrees > 0
 		}
 		else
 		{
-			bTree = false; // Mountain otherwise
+			bTree = false;				// Mountain otherwise
 		}
 
 		SpawnObstaclesAtLocation(Location, bTree);
@@ -158,6 +142,7 @@ void AGridLine::SpawnObstaclesAtLocation(const FVector& Location, bool bIsTree)
 		NewObstacle->SetMaterial(bIsTree);
 		ObstaclePositions.Add(Location);	// Store location of obstacle in the array
 	}
+
 	// Pass obstacle positions to the game mode
 	ATurnBasedGameMode* GameMode = Cast<ATurnBasedGameMode>(GetWorld()->GetAuthGameMode());
 	if (GameMode)
@@ -169,7 +154,7 @@ void AGridLine::SpawnObstaclesAtLocation(const FVector& Location, bool bIsTree)
 bool AGridLine::IsGridFullyConnected(const TArray<TArray<bool>>& Grid)
 {
 	TArray<FIntPoint> OpenList; // Cells to verify
-	TArray<FIntPoint> Visited; // Cells visited
+	TArray<FIntPoint> Visited;	// Cells visited
 
 	// Start finding a cell to visit
 	for (int32 x = 0; x < GridSize; x++)

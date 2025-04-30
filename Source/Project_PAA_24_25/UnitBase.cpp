@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "UnitBase.h"
 #include "TurnBasedGameMode.h"
 #include "GridPlayerController.h"
@@ -9,7 +6,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "UObject/ConstructorHelpers.h"
 
-// Sets default values
+
 AUnitBase::AUnitBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -22,7 +19,7 @@ AUnitBase::AUnitBase()
 	if (CylinderMesh.Succeeded())
 	{
 		UnitMesh->SetStaticMesh(CylinderMesh.Object);
-		UnitMesh->SetWorldScale3D(FVector(0.85f, 0.85f, 0.3f));
+		UnitMesh->SetWorldScale3D(FVector(0.85f, 0.85f, 0.1f));
 
 		static ConstructorHelpers::FObjectFinder<UMaterial> SniperPlayerMaterial(TEXT("/Game/Textures/SniperPlayerMat.SniperPlayerMat"));
 		static ConstructorHelpers::FObjectFinder<UMaterial> SniperEnemyMaterial(TEXT("/Game/Textures/SniperEnemyMat.SniperEnemyMat"));
@@ -51,12 +48,9 @@ AUnitBase::AUnitBase()
 	}
 }
 
-// Called when the game starts or when spawned
 void AUnitBase::BeginPlay()
 {
 	Super::BeginPlay();
-
-	UE_LOG(LogTemp, Warning, TEXT("%s is controlled by: %s"), *GetName(), bIsPlayerControlled ? TEXT("PLAYER") : TEXT("AI"));
 
 	if (UnitType == EUnitType::Sniper)
 	{
@@ -80,73 +74,98 @@ void AUnitBase::BeginPlay()
 			UnitMesh->SetMaterial(0, BrawlerEnemyMat);
 		}
 	}
+
+	// Reset all units actions
+	ATurnBasedGameMode* GameMode = Cast<ATurnBasedGameMode>(GetWorld()->GetAuthGameMode());
+	for (AUnitBase* Unit : GameMode->PlayerUnits)
+	{
+		Unit->bCanMove = true;
+		Unit->bCanAttack = true;
+		Unit->bCanAttackAfterMove = false;
+		Unit->bHasCompletedAction = false;
+		Unit->bIsPlaced = false;
+	}
+	for (AUnitBase* Unit : GameMode->EnemyUnits)
+	{
+		Unit->bHasCompletedAction = false;
+	}
 }
 
-// Called every frame
-void AUnitBase::Tick(float DeltaTime)
+FString AUnitBase::GetUnitType() const
 {
-	Super::Tick(DeltaTime);
+	switch (UnitType)
+	{
+	case EUnitType::Sniper:
+		return TEXT("S");
+	case EUnitType::Brawler:
+		return TEXT("B");
+	default:
+		return TEXT("Unknown");
+	}
 }
 
 void AUnitBase::ApplyDamage(int32 DamageAmount)
 {
 	CurrentDamage = DamageAmount;
 	Health -= DamageAmount;
-	UE_LOG(LogTemp, Warning, TEXT("%s took %d damage. Health now: %d"), *GetName(), DamageAmount, Health);
 
 	if (Health <= 0)
 	{
 		Health = 0;
-		UE_LOG(LogTemp, Warning, TEXT("%s has been destroyed."), *GetName());
-
-		// Update widget before eliminating the unit
-		AGridPlayerController* PlayerController = Cast<AGridPlayerController>(GetWorld()->GetFirstPlayerController());
-		if (PlayerController)
-		{
-			PlayerController->UpdateAllUnitWidgets();
-		}
-		else 
-		{
-			UE_LOG(LogTemp, Error, TEXT("PlayerController not found in ApplyDamage"));
-		}
 		
 		ATurnBasedGameMode* GameMode = Cast<ATurnBasedGameMode>(GetWorld()->GetAuthGameMode());
 		if (GameMode)
 		{
-			// Rimuovi l'unità dalla lista appropriata
+			// Remove unit from appropriate array
 			if (bIsPlayerControlled)
 			{
 				GameMode->PlayerUnits.Remove(this);
-				UE_LOG(LogTemp, Warning, TEXT("Removed %s from PlayerUnits."), *GetName());
+				GameMode->EliminatedPlayerUnits.Add(this);
 			}
 			else
 			{
 				GameMode->EnemyUnits.Remove(this);
-				UE_LOG(LogTemp, Warning, TEXT("Removed %s from EnemyUnits."), *GetName());
+				GameMode->EliminatedEnemyUnits.Add(this);
+				GameMode->CurrentEnemyUnitIndex--;
 			}
 		}
-		SetLifeSpan(0.1f);
+		SetLifeSpan(0.1f);					// Destroy the unit after a short delay
+		GameMode->CheckEndGameCondition();	// Check if the game should end
 	}
 }
 
 void AUnitBase::CounterAttack(AUnitBase* Attacker)
 {
-	if (!Attacker)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Sniper attacking unit not valid"));
-	}
-
 	// Only for sniper:
-	if (UnitType == EUnitType::Sniper || FVector::Dist(GetActorLocation(), Attacker->GetActorLocation()) <= 100.0f)
+	if (UnitType == EUnitType::Sniper || FVector::Dist(this->GetActorLocation(), Attacker->GetActorLocation()) <= 100.0f)
 	{
 		int32 CounterDamage = FMath::RandRange(1, 3);
 		Attacker->ApplyDamage(CounterDamage);
 
-		UE_LOG(LogTemp, Warning, TEXT("%s counter-attacks %s causing %d danni!"), *GetName(), *Attacker->GetName(), CounterDamage);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Conditions not valid for counter-attack"));
+		FString PlayerID = this->bIsPlayerControlled ? TEXT("HP") : TEXT("AI");
+
+		// Update Widget and History after counter-attack
+		AGridPlayerController* PlayerController = Cast<AGridPlayerController>(GetWorld()->GetFirstPlayerController());
+		if (!PlayerController)
+		{
+			return;
+		}
+		PlayerController->UpdateAllUnitWidgets();
+
+		// Highlight the cell where the counter-attack occurred
+		PlayerController->FindCellUnderUnit(this->GetActorLocation())->HighlightCell(false);
+		PlayerController->AttackCells.Add(PlayerController->FindCellUnderUnit(this->GetActorLocation()));
+
+		ATurnBasedGameMode* GameMode = Cast<ATurnBasedGameMode>(GetWorld()->GetAuthGameMode());
+		if (!GameMode)
+		{
+			return;
+		}
+		FString TargetCell = GameMode->ConvertPositionToNotation(Attacker->GetActorLocation());
+		
+		// Log the counter-attack
+		if (Attacker->bIsPlayerControlled) PlayerController->StoreAttack(this, Attacker, CounterDamage);
+		else GameMode->LogAttack(PlayerID, this->GetUnitType(), TargetCell, CounterDamage);
 	}
 }
 
