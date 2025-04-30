@@ -40,10 +40,10 @@ struct Z_Construct_UEnum_Project_PAA_24_25_EUnitType_Statics
 #if WITH_METADATA
 	static constexpr UECodeGen_Private::FMetaDataPairParam Enum_MetaDataParams[] = {
 		{ "BlueprintType", "true" },
-		{ "Brawler.DisplayName", "Brawler" },
+		{ "Brawler.DisplayName", "BRAWLER" },
 		{ "Brawler.Name", "EUnitType::Brawler" },
 		{ "ModuleRelativePath", "UnitBase.h" },
-		{ "Sniper.DisplayName", "Sniper" },
+		{ "Sniper.DisplayName", "SNIPER" },
 		{ "Sniper.Name", "EUnitType::Sniper" },
 	};
 #endif // WITH_METADATA
@@ -84,7 +84,13 @@ struct Z_Construct_UFunction_AUnitBase_ApplyDamage_Statics
 	};
 #if WITH_METADATA
 	static constexpr UECodeGen_Private::FMetaDataPairParam Function_MetaDataParams[] = {
+#if !UE_BUILD_SHIPPING
+		{ "Comment", "// unit is placed on the grid\n" },
+#endif
 		{ "ModuleRelativePath", "UnitBase.h" },
+#if !UE_BUILD_SHIPPING
+		{ "ToolTip", "unit is placed on the grid" },
+#endif
 	};
 #endif // WITH_METADATA
 	static const UECodeGen_Private::FIntPropertyParams NewProp_DamageAmount;
@@ -164,13 +170,7 @@ struct Z_Construct_UFunction_AUnitBase_UpdateMaterial_Statics
 {
 #if WITH_METADATA
 	static constexpr UECodeGen_Private::FMetaDataPairParam Function_MetaDataParams[] = {
-#if !UE_BUILD_SHIPPING
-		{ "Comment", "//void AttackTarget(AUnitBase* Target);\n" },
-#endif
 		{ "ModuleRelativePath", "UnitBase.h" },
-#if !UE_BUILD_SHIPPING
-		{ "ToolTip", "void AttackTarget(AUnitBase* Target);" },
-#endif
 	};
 #endif // WITH_METADATA
 	static const UECodeGen_Private::FFunctionParams FuncParams;
@@ -221,9 +221,57 @@ struct Z_Construct_UClass_AUnitBase_Statics
 		{ "Category", "Unit" },
 		{ "ModuleRelativePath", "UnitBase.h" },
 	};
+	static constexpr UECodeGen_Private::FMetaDataPairParam NewProp_UnitRole_MetaData[] = {
+		{ "Category", "Unit" },
+		{ "ModuleRelativePath", "UnitBase.h" },
+	};
 	static constexpr UECodeGen_Private::FMetaDataPairParam NewProp_bIsPlayerControlled_MetaData[] = {
 		{ "Category", "Control" },
 		{ "ModuleRelativePath", "UnitBase.h" },
+	};
+	static constexpr UECodeGen_Private::FMetaDataPairParam NewProp_bHasCompletedAction_MetaData[] = {
+		{ "Category", "Turn" },
+		{ "ModuleRelativePath", "UnitBase.h" },
+	};
+	static constexpr UECodeGen_Private::FMetaDataPairParam NewProp_bCanMove_MetaData[] = {
+		{ "Category", "Turn" },
+#if !UE_BUILD_SHIPPING
+		{ "Comment", "// unit has completed its action for the turn\n" },
+#endif
+		{ "ModuleRelativePath", "UnitBase.h" },
+#if !UE_BUILD_SHIPPING
+		{ "ToolTip", "unit has completed its action for the turn" },
+#endif
+	};
+	static constexpr UECodeGen_Private::FMetaDataPairParam NewProp_bCanAttack_MetaData[] = {
+		{ "Category", "Turn" },
+#if !UE_BUILD_SHIPPING
+		{ "Comment", "// unit can move\n" },
+#endif
+		{ "ModuleRelativePath", "UnitBase.h" },
+#if !UE_BUILD_SHIPPING
+		{ "ToolTip", "unit can move" },
+#endif
+	};
+	static constexpr UECodeGen_Private::FMetaDataPairParam NewProp_bCanAttackAfterMove_MetaData[] = {
+		{ "Category", "Turn" },
+#if !UE_BUILD_SHIPPING
+		{ "Comment", "// unit can attack\n" },
+#endif
+		{ "ModuleRelativePath", "UnitBase.h" },
+#if !UE_BUILD_SHIPPING
+		{ "ToolTip", "unit can attack" },
+#endif
+	};
+	static constexpr UECodeGen_Private::FMetaDataPairParam NewProp_bIsPlaced_MetaData[] = {
+		{ "Category", "Placement" },
+#if !UE_BUILD_SHIPPING
+		{ "Comment", "// unit can attack only after has moved\n" },
+#endif
+		{ "ModuleRelativePath", "UnitBase.h" },
+#if !UE_BUILD_SHIPPING
+		{ "ToolTip", "unit can attack only after has moved" },
+#endif
 	};
 	static constexpr UECodeGen_Private::FMetaDataPairParam NewProp_UnitMesh_MetaData[] = {
 		{ "Category", "UnitBase" },
@@ -281,8 +329,19 @@ struct Z_Construct_UClass_AUnitBase_Statics
 #endif // WITH_METADATA
 	static const UECodeGen_Private::FBytePropertyParams NewProp_UnitType_Underlying;
 	static const UECodeGen_Private::FEnumPropertyParams NewProp_UnitType;
+	static const UECodeGen_Private::FStrPropertyParams NewProp_UnitRole;
 	static void NewProp_bIsPlayerControlled_SetBit(void* Obj);
 	static const UECodeGen_Private::FBoolPropertyParams NewProp_bIsPlayerControlled;
+	static void NewProp_bHasCompletedAction_SetBit(void* Obj);
+	static const UECodeGen_Private::FBoolPropertyParams NewProp_bHasCompletedAction;
+	static void NewProp_bCanMove_SetBit(void* Obj);
+	static const UECodeGen_Private::FBoolPropertyParams NewProp_bCanMove;
+	static void NewProp_bCanAttack_SetBit(void* Obj);
+	static const UECodeGen_Private::FBoolPropertyParams NewProp_bCanAttack;
+	static void NewProp_bCanAttackAfterMove_SetBit(void* Obj);
+	static const UECodeGen_Private::FBoolPropertyParams NewProp_bCanAttackAfterMove;
+	static void NewProp_bIsPlaced_SetBit(void* Obj);
+	static const UECodeGen_Private::FBoolPropertyParams NewProp_bIsPlaced;
 	static const UECodeGen_Private::FObjectPropertyParams NewProp_UnitMesh;
 	static const UECodeGen_Private::FIntPropertyParams NewProp_Health;
 	static const UECodeGen_Private::FIntPropertyParams NewProp_MaxMovement;
@@ -299,9 +358,9 @@ struct Z_Construct_UClass_AUnitBase_Statics
 	static const UECodeGen_Private::FPropertyParamsBase* const PropPointers[];
 	static UObject* (*const DependentSingletons[])();
 	static constexpr FClassFunctionLinkInfo FuncInfo[] = {
-		{ &Z_Construct_UFunction_AUnitBase_ApplyDamage, "ApplyDamage" }, // 628239800
+		{ &Z_Construct_UFunction_AUnitBase_ApplyDamage, "ApplyDamage" }, // 3612769686
 		{ &Z_Construct_UFunction_AUnitBase_CounterAttack, "CounterAttack" }, // 473856446
-		{ &Z_Construct_UFunction_AUnitBase_UpdateMaterial, "UpdateMaterial" }, // 3118209385
+		{ &Z_Construct_UFunction_AUnitBase_UpdateMaterial, "UpdateMaterial" }, // 1363636272
 	};
 	static_assert(UE_ARRAY_COUNT(FuncInfo) < 2048);
 	static constexpr FCppClassTypeInfoStatic StaticCppClassTypeInfo = {
@@ -310,12 +369,38 @@ struct Z_Construct_UClass_AUnitBase_Statics
 	static const UECodeGen_Private::FClassParams ClassParams;
 };
 const UECodeGen_Private::FBytePropertyParams Z_Construct_UClass_AUnitBase_Statics::NewProp_UnitType_Underlying = { "UnderlyingType", nullptr, (EPropertyFlags)0x0000000000000000, UECodeGen_Private::EPropertyGenFlags::Byte, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, 0, nullptr, METADATA_PARAMS(0, nullptr) };
-const UECodeGen_Private::FEnumPropertyParams Z_Construct_UClass_AUnitBase_Statics::NewProp_UnitType = { "UnitType", nullptr, (EPropertyFlags)0x0010000000000005, UECodeGen_Private::EPropertyGenFlags::Enum, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, STRUCT_OFFSET(AUnitBase, UnitType), Z_Construct_UEnum_Project_PAA_24_25_EUnitType, METADATA_PARAMS(UE_ARRAY_COUNT(NewProp_UnitType_MetaData), NewProp_UnitType_MetaData) }; // 404567969
+const UECodeGen_Private::FEnumPropertyParams Z_Construct_UClass_AUnitBase_Statics::NewProp_UnitType = { "UnitType", nullptr, (EPropertyFlags)0x0010000000000005, UECodeGen_Private::EPropertyGenFlags::Enum, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, STRUCT_OFFSET(AUnitBase, UnitType), Z_Construct_UEnum_Project_PAA_24_25_EUnitType, METADATA_PARAMS(UE_ARRAY_COUNT(NewProp_UnitType_MetaData), NewProp_UnitType_MetaData) }; // 2876934478
+const UECodeGen_Private::FStrPropertyParams Z_Construct_UClass_AUnitBase_Statics::NewProp_UnitRole = { "UnitRole", nullptr, (EPropertyFlags)0x0010000000000004, UECodeGen_Private::EPropertyGenFlags::Str, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, STRUCT_OFFSET(AUnitBase, UnitRole), METADATA_PARAMS(UE_ARRAY_COUNT(NewProp_UnitRole_MetaData), NewProp_UnitRole_MetaData) };
 void Z_Construct_UClass_AUnitBase_Statics::NewProp_bIsPlayerControlled_SetBit(void* Obj)
 {
 	((AUnitBase*)Obj)->bIsPlayerControlled = 1;
 }
 const UECodeGen_Private::FBoolPropertyParams Z_Construct_UClass_AUnitBase_Statics::NewProp_bIsPlayerControlled = { "bIsPlayerControlled", nullptr, (EPropertyFlags)0x0010000000000005, UECodeGen_Private::EPropertyGenFlags::Bool | UECodeGen_Private::EPropertyGenFlags::NativeBool, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, sizeof(bool), sizeof(AUnitBase), &Z_Construct_UClass_AUnitBase_Statics::NewProp_bIsPlayerControlled_SetBit, METADATA_PARAMS(UE_ARRAY_COUNT(NewProp_bIsPlayerControlled_MetaData), NewProp_bIsPlayerControlled_MetaData) };
+void Z_Construct_UClass_AUnitBase_Statics::NewProp_bHasCompletedAction_SetBit(void* Obj)
+{
+	((AUnitBase*)Obj)->bHasCompletedAction = 1;
+}
+const UECodeGen_Private::FBoolPropertyParams Z_Construct_UClass_AUnitBase_Statics::NewProp_bHasCompletedAction = { "bHasCompletedAction", nullptr, (EPropertyFlags)0x0010000000000005, UECodeGen_Private::EPropertyGenFlags::Bool | UECodeGen_Private::EPropertyGenFlags::NativeBool, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, sizeof(bool), sizeof(AUnitBase), &Z_Construct_UClass_AUnitBase_Statics::NewProp_bHasCompletedAction_SetBit, METADATA_PARAMS(UE_ARRAY_COUNT(NewProp_bHasCompletedAction_MetaData), NewProp_bHasCompletedAction_MetaData) };
+void Z_Construct_UClass_AUnitBase_Statics::NewProp_bCanMove_SetBit(void* Obj)
+{
+	((AUnitBase*)Obj)->bCanMove = 1;
+}
+const UECodeGen_Private::FBoolPropertyParams Z_Construct_UClass_AUnitBase_Statics::NewProp_bCanMove = { "bCanMove", nullptr, (EPropertyFlags)0x0010000000000005, UECodeGen_Private::EPropertyGenFlags::Bool | UECodeGen_Private::EPropertyGenFlags::NativeBool, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, sizeof(bool), sizeof(AUnitBase), &Z_Construct_UClass_AUnitBase_Statics::NewProp_bCanMove_SetBit, METADATA_PARAMS(UE_ARRAY_COUNT(NewProp_bCanMove_MetaData), NewProp_bCanMove_MetaData) };
+void Z_Construct_UClass_AUnitBase_Statics::NewProp_bCanAttack_SetBit(void* Obj)
+{
+	((AUnitBase*)Obj)->bCanAttack = 1;
+}
+const UECodeGen_Private::FBoolPropertyParams Z_Construct_UClass_AUnitBase_Statics::NewProp_bCanAttack = { "bCanAttack", nullptr, (EPropertyFlags)0x0010000000000005, UECodeGen_Private::EPropertyGenFlags::Bool | UECodeGen_Private::EPropertyGenFlags::NativeBool, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, sizeof(bool), sizeof(AUnitBase), &Z_Construct_UClass_AUnitBase_Statics::NewProp_bCanAttack_SetBit, METADATA_PARAMS(UE_ARRAY_COUNT(NewProp_bCanAttack_MetaData), NewProp_bCanAttack_MetaData) };
+void Z_Construct_UClass_AUnitBase_Statics::NewProp_bCanAttackAfterMove_SetBit(void* Obj)
+{
+	((AUnitBase*)Obj)->bCanAttackAfterMove = 1;
+}
+const UECodeGen_Private::FBoolPropertyParams Z_Construct_UClass_AUnitBase_Statics::NewProp_bCanAttackAfterMove = { "bCanAttackAfterMove", nullptr, (EPropertyFlags)0x0010000000000005, UECodeGen_Private::EPropertyGenFlags::Bool | UECodeGen_Private::EPropertyGenFlags::NativeBool, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, sizeof(bool), sizeof(AUnitBase), &Z_Construct_UClass_AUnitBase_Statics::NewProp_bCanAttackAfterMove_SetBit, METADATA_PARAMS(UE_ARRAY_COUNT(NewProp_bCanAttackAfterMove_MetaData), NewProp_bCanAttackAfterMove_MetaData) };
+void Z_Construct_UClass_AUnitBase_Statics::NewProp_bIsPlaced_SetBit(void* Obj)
+{
+	((AUnitBase*)Obj)->bIsPlaced = 1;
+}
+const UECodeGen_Private::FBoolPropertyParams Z_Construct_UClass_AUnitBase_Statics::NewProp_bIsPlaced = { "bIsPlaced", nullptr, (EPropertyFlags)0x0010000000000005, UECodeGen_Private::EPropertyGenFlags::Bool | UECodeGen_Private::EPropertyGenFlags::NativeBool, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, sizeof(bool), sizeof(AUnitBase), &Z_Construct_UClass_AUnitBase_Statics::NewProp_bIsPlaced_SetBit, METADATA_PARAMS(UE_ARRAY_COUNT(NewProp_bIsPlaced_MetaData), NewProp_bIsPlaced_MetaData) };
 const UECodeGen_Private::FObjectPropertyParams Z_Construct_UClass_AUnitBase_Statics::NewProp_UnitMesh = { "UnitMesh", nullptr, (EPropertyFlags)0x00100000000a001d, UECodeGen_Private::EPropertyGenFlags::Object, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, STRUCT_OFFSET(AUnitBase, UnitMesh), Z_Construct_UClass_UStaticMeshComponent_NoRegister, METADATA_PARAMS(UE_ARRAY_COUNT(NewProp_UnitMesh_MetaData), NewProp_UnitMesh_MetaData) };
 const UECodeGen_Private::FIntPropertyParams Z_Construct_UClass_AUnitBase_Statics::NewProp_Health = { "Health", nullptr, (EPropertyFlags)0x0010000000000005, UECodeGen_Private::EPropertyGenFlags::Int, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, STRUCT_OFFSET(AUnitBase, Health), METADATA_PARAMS(UE_ARRAY_COUNT(NewProp_Health_MetaData), NewProp_Health_MetaData) };
 const UECodeGen_Private::FIntPropertyParams Z_Construct_UClass_AUnitBase_Statics::NewProp_MaxMovement = { "MaxMovement", nullptr, (EPropertyFlags)0x0010000000000005, UECodeGen_Private::EPropertyGenFlags::Int, RF_Public|RF_Transient|RF_MarkAsNative, nullptr, nullptr, 1, STRUCT_OFFSET(AUnitBase, MaxMovement), METADATA_PARAMS(UE_ARRAY_COUNT(NewProp_MaxMovement_MetaData), NewProp_MaxMovement_MetaData) };
@@ -332,7 +417,13 @@ const UECodeGen_Private::FObjectPropertyParams Z_Construct_UClass_AUnitBase_Stat
 const UECodeGen_Private::FPropertyParamsBase* const Z_Construct_UClass_AUnitBase_Statics::PropPointers[] = {
 	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_AUnitBase_Statics::NewProp_UnitType_Underlying,
 	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_AUnitBase_Statics::NewProp_UnitType,
+	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_AUnitBase_Statics::NewProp_UnitRole,
 	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_AUnitBase_Statics::NewProp_bIsPlayerControlled,
+	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_AUnitBase_Statics::NewProp_bHasCompletedAction,
+	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_AUnitBase_Statics::NewProp_bCanMove,
+	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_AUnitBase_Statics::NewProp_bCanAttack,
+	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_AUnitBase_Statics::NewProp_bCanAttackAfterMove,
+	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_AUnitBase_Statics::NewProp_bIsPlaced,
 	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_AUnitBase_Statics::NewProp_UnitMesh,
 	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_AUnitBase_Statics::NewProp_Health,
 	(const UECodeGen_Private::FPropertyParamsBase*)&Z_Construct_UClass_AUnitBase_Statics::NewProp_MaxMovement,
@@ -388,13 +479,13 @@ AUnitBase::~AUnitBase() {}
 struct Z_CompiledInDeferFile_FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_UnitBase_h_Statics
 {
 	static constexpr FEnumRegisterCompiledInInfo EnumInfo[] = {
-		{ EUnitType_StaticEnum, TEXT("EUnitType"), &Z_Registration_Info_UEnum_EUnitType, CONSTRUCT_RELOAD_VERSION_INFO(FEnumReloadVersionInfo, 404567969U) },
+		{ EUnitType_StaticEnum, TEXT("EUnitType"), &Z_Registration_Info_UEnum_EUnitType, CONSTRUCT_RELOAD_VERSION_INFO(FEnumReloadVersionInfo, 2876934478U) },
 	};
 	static constexpr FClassRegisterCompiledInInfo ClassInfo[] = {
-		{ Z_Construct_UClass_AUnitBase, AUnitBase::StaticClass, TEXT("AUnitBase"), &Z_Registration_Info_UClass_AUnitBase, CONSTRUCT_RELOAD_VERSION_INFO(FClassReloadVersionInfo, sizeof(AUnitBase), 45282947U) },
+		{ Z_Construct_UClass_AUnitBase, AUnitBase::StaticClass, TEXT("AUnitBase"), &Z_Registration_Info_UClass_AUnitBase, CONSTRUCT_RELOAD_VERSION_INFO(FClassReloadVersionInfo, sizeof(AUnitBase), 3580078579U) },
 	};
 };
-static FRegisterCompiledInInfo Z_CompiledInDeferFile_FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_UnitBase_h_3717797594(TEXT("/Script/Project_PAA_24_25"),
+static FRegisterCompiledInInfo Z_CompiledInDeferFile_FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_UnitBase_h_2439688056(TEXT("/Script/Project_PAA_24_25"),
 	Z_CompiledInDeferFile_FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_UnitBase_h_Statics::ClassInfo, UE_ARRAY_COUNT(Z_CompiledInDeferFile_FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_UnitBase_h_Statics::ClassInfo),
 	nullptr, 0,
 	Z_CompiledInDeferFile_FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_UnitBase_h_Statics::EnumInfo, UE_ARRAY_COUNT(Z_CompiledInDeferFile_FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_UnitBase_h_Statics::EnumInfo));

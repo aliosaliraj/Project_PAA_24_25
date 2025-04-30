@@ -9,18 +9,18 @@
 #include "UObject/ScriptMacros.h"
 
 PRAGMA_DISABLE_DEPRECATION_WARNINGS
-struct FColor;
+struct FLinearColor;
 #ifdef PROJECT_PAA_24_25_CellActor_generated_h
 #error "CellActor.generated.h already included, missing '#pragma once' in CellActor.h"
 #endif
 #define PROJECT_PAA_24_25_CellActor_generated_h
 
-#define FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_CellActor_h_12_RPC_WRAPPERS_NO_PURE_DECLS \
+#define FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_CellActor_h_10_RPC_WRAPPERS_NO_PURE_DECLS \
 	DECLARE_FUNCTION(execSetCellColor); \
 	DECLARE_FUNCTION(execHighlightCell);
 
 
-#define FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_CellActor_h_12_INCLASS_NO_PURE_DECLS \
+#define FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_CellActor_h_10_INCLASS_NO_PURE_DECLS \
 private: \
 	static void StaticRegisterNativesACellActor(); \
 	friend struct Z_Construct_UClass_ACellActor_Statics; \
@@ -29,7 +29,7 @@ public: \
 	DECLARE_SERIALIZER(ACellActor)
 
 
-#define FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_CellActor_h_12_ENHANCED_CONSTRUCTORS \
+#define FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_CellActor_h_10_ENHANCED_CONSTRUCTORS \
 private: \
 	/** Private move- and copy-constructors, should never be used */ \
 	ACellActor(ACellActor&&); \
@@ -41,13 +41,13 @@ public: \
 	NO_API virtual ~ACellActor();
 
 
-#define FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_CellActor_h_9_PROLOG
-#define FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_CellActor_h_12_GENERATED_BODY \
+#define FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_CellActor_h_7_PROLOG
+#define FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_CellActor_h_10_GENERATED_BODY \
 PRAGMA_DISABLE_DEPRECATION_WARNINGS \
 public: \
-	FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_CellActor_h_12_RPC_WRAPPERS_NO_PURE_DECLS \
-	FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_CellActor_h_12_INCLASS_NO_PURE_DECLS \
-	FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_CellActor_h_12_ENHANCED_CONSTRUCTORS \
+	FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_CellActor_h_10_RPC_WRAPPERS_NO_PURE_DECLS \
+	FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_CellActor_h_10_INCLASS_NO_PURE_DECLS \
+	FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_CellActor_h_10_ENHANCED_CONSTRUCTORS \
 private: \
 PRAGMA_ENABLE_DEPRECATION_WARNINGS
 

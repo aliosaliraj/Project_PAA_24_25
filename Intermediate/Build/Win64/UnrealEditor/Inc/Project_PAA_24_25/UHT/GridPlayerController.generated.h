@@ -9,17 +9,32 @@
 #include "UObject/ScriptMacros.h"
 
 PRAGMA_DISABLE_DEPRECATION_WARNINGS
+class ACellActor;
+class AUnitBase;
 #ifdef PROJECT_PAA_24_25_GridPlayerController_generated_h
 #error "GridPlayerController.generated.h already included, missing '#pragma once' in GridPlayerController.h"
 #endif
 #define PROJECT_PAA_24_25_GridPlayerController_generated_h
 
-#define FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_GridPlayerController_h_17_RPC_WRAPPERS_NO_PURE_DECLS \
-	DECLARE_FUNCTION(execShowUnitInfo); \
-	DECLARE_FUNCTION(execHandleAttackUnit);
+#define FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_GridPlayerController_h_16_RPC_WRAPPERS_NO_PURE_DECLS \
+	DECLARE_FUNCTION(execDisablePlayerInput); \
+	DECLARE_FUNCTION(execStoreAttack); \
+	DECLARE_FUNCTION(execStoreMove); \
+	DECLARE_FUNCTION(execHandleEndTurn); \
+	DECLARE_FUNCTION(execHandleNextUnit); \
+	DECLARE_FUNCTION(execHandleAttackUnit); \
+	DECLARE_FUNCTION(execClearMovementRange); \
+	DECLARE_FUNCTION(execShowMovementRange); \
+	DECLARE_FUNCTION(execMovePlayerStepByStep); \
+	DECLARE_FUNCTION(execHandleMoveUnit); \
+	DECLARE_FUNCTION(execFindCellUnderUnit); \
+	DECLARE_FUNCTION(execHandleSelectUnit); \
+	DECLARE_FUNCTION(execHandlePlaceUnit); \
+	DECLARE_FUNCTION(execUpdateAllUnitWidgets); \
+	DECLARE_FUNCTION(execInitializeGridCells);
 
 
-#define FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_GridPlayerController_h_17_INCLASS_NO_PURE_DECLS \
+#define FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_GridPlayerController_h_16_INCLASS_NO_PURE_DECLS \
 private: \
 	static void StaticRegisterNativesAGridPlayerController(); \
 	friend struct Z_Construct_UClass_AGridPlayerController_Statics; \
@@ -28,7 +43,7 @@ public: \
 	DECLARE_SERIALIZER(AGridPlayerController)
 
 
-#define FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_GridPlayerController_h_17_ENHANCED_CONSTRUCTORS \
+#define FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_GridPlayerController_h_16_ENHANCED_CONSTRUCTORS \
 private: \
 	/** Private move- and copy-constructors, should never be used */ \
 	AGridPlayerController(AGridPlayerController&&); \
@@ -40,13 +55,13 @@ public: \
 	NO_API virtual ~AGridPlayerController();
 
 
-#define FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_GridPlayerController_h_14_PROLOG
-#define FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_GridPlayerController_h_17_GENERATED_BODY \
+#define FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_GridPlayerController_h_13_PROLOG
+#define FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_GridPlayerController_h_16_GENERATED_BODY \
 PRAGMA_DISABLE_DEPRECATION_WARNINGS \
 public: \
-	FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_GridPlayerController_h_17_RPC_WRAPPERS_NO_PURE_DECLS \
-	FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_GridPlayerController_h_17_INCLASS_NO_PURE_DECLS \
-	FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_GridPlayerController_h_17_ENHANCED_CONSTRUCTORS \
+	FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_GridPlayerController_h_16_RPC_WRAPPERS_NO_PURE_DECLS \
+	FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_GridPlayerController_h_16_INCLASS_NO_PURE_DECLS \
+	FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_GridPlayerController_h_16_ENHANCED_CONSTRUCTORS \
 private: \
 PRAGMA_ENABLE_DEPRECATION_WARNINGS
 

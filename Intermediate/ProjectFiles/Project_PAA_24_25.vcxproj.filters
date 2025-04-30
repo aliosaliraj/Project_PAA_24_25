@@ -90,6 +90,12 @@
     <ClInclude Include="..\..\Source\Project_PAA_24_25\TurnBasedGameMode.h">
       <Filter>Source\Project_PAA_24_25</Filter>
     </ClInclude>
+    <ClCompile Include="..\..\Source\Project_PAA_24_25\TurnIndicatorWidget.cpp">
+      <Filter>Source\Project_PAA_24_25</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Project_PAA_24_25\TurnIndicatorWidget.h">
+      <Filter>Source\Project_PAA_24_25</Filter>
+    </ClInclude>
     <ClCompile Include="..\..\Source\Project_PAA_24_25\UnitBase.cpp">
       <Filter>Source\Project_PAA_24_25</Filter>
     </ClCompile>

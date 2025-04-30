@@ -297,6 +297,10 @@
       <AdditionalIncludeDirectories>$(ClCompile_AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <ClInclude Include="..\..\Source\Project_PAA_24_25\TurnBasedGameMode.h"/>
+    <ClCompile Include="..\..\Source\Project_PAA_24_25\TurnIndicatorWidget.cpp">
+      <AdditionalIncludeDirectories>$(ClCompile_AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\Project_PAA_24_25\TurnIndicatorWidget.h"/>
     <ClCompile Include="..\..\Source\Project_PAA_24_25\UnitBase.cpp">
       <AdditionalIncludeDirectories>$(ClCompile_AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>

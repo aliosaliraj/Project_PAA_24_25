@@ -28,11 +28,11 @@ struct Z_Construct_UFunction_AObstacle_SetMaterial_Statics
 #if WITH_METADATA
 	static constexpr UECodeGen_Private::FMetaDataPairParam Function_MetaDataParams[] = {
 #if !UE_BUILD_SHIPPING
-		{ "Comment", "// true = tree, false = mountain\n" },
+		{ "Comment", "// Boolean variable that if true sets the obstacle material as a tree, otherwhise as a mountain\n" },
 #endif
 		{ "ModuleRelativePath", "Obstacle.h" },
 #if !UE_BUILD_SHIPPING
-		{ "ToolTip", "true = tree, false = mountain" },
+		{ "ToolTip", "Boolean variable that if true sets the obstacle material as a tree, otherwhise as a mountain" },
 #endif
 	};
 #endif // WITH_METADATA
@@ -124,7 +124,7 @@ struct Z_Construct_UClass_AObstacle_Statics
 	static const UECodeGen_Private::FPropertyParamsBase* const PropPointers[];
 	static UObject* (*const DependentSingletons[])();
 	static constexpr FClassFunctionLinkInfo FuncInfo[] = {
-		{ &Z_Construct_UFunction_AObstacle_SetMaterial, "SetMaterial" }, // 1671600226
+		{ &Z_Construct_UFunction_AObstacle_SetMaterial, "SetMaterial" }, // 3766831051
 	};
 	static_assert(UE_ARRAY_COUNT(FuncInfo) < 2048);
 	static constexpr FCppClassTypeInfoStatic StaticCppClassTypeInfo = {
@@ -187,10 +187,10 @@ AObstacle::~AObstacle() {}
 struct Z_CompiledInDeferFile_FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_Obstacle_h_Statics
 {
 	static constexpr FClassRegisterCompiledInInfo ClassInfo[] = {
-		{ Z_Construct_UClass_AObstacle, AObstacle::StaticClass, TEXT("AObstacle"), &Z_Registration_Info_UClass_AObstacle, CONSTRUCT_RELOAD_VERSION_INFO(FClassReloadVersionInfo, sizeof(AObstacle), 361977152U) },
+		{ Z_Construct_UClass_AObstacle, AObstacle::StaticClass, TEXT("AObstacle"), &Z_Registration_Info_UClass_AObstacle, CONSTRUCT_RELOAD_VERSION_INFO(FClassReloadVersionInfo, sizeof(AObstacle), 3527996800U) },
 	};
 };
-static FRegisterCompiledInInfo Z_CompiledInDeferFile_FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_Obstacle_h_2806142259(TEXT("/Script/Project_PAA_24_25"),
+static FRegisterCompiledInInfo Z_CompiledInDeferFile_FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_Obstacle_h_2012447469(TEXT("/Script/Project_PAA_24_25"),
 	Z_CompiledInDeferFile_FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_Obstacle_h_Statics::ClassInfo, UE_ARRAY_COUNT(Z_CompiledInDeferFile_FID_Unreal_Projects_Project_PAA_24_25_Source_Project_PAA_24_25_Obstacle_h_Statics::ClassInfo),
 	nullptr, 0,
 	nullptr, 0);
